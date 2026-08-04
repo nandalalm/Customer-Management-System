@@ -95,7 +95,7 @@ const params = new URLSearchParams(searchParams);
 ## Stage 2 — Folder Structure & Base Config
 > Create the full folder skeleton and wire up providers, axios, and the root layout. No feature code yet.
 
-- [ ] Create all empty index files to establish directories:
+- [x] Create all empty index files to establish directories:
   ```
   src/components/customers/
   src/components/filters/
@@ -109,12 +109,12 @@ const params = new URLSearchParams(searchParams);
   src/providers/
   src/utils/
   ```
-- [ ] `src/lib/axios.ts` — base URL, request/response interceptors, typed error handler
-- [ ] `src/providers/QueryProvider.tsx` — `QueryClientProvider` with shared `QueryClient` (staleTime default: 30s)
-- [ ] `src/providers/ThemeProvider.tsx` — `next-themes` wrapper with `defaultTheme="dark"`
-- [ ] `src/app/layout.tsx` — composes `ThemeProvider` → `QueryProvider` → `{children}` → `<Toaster />`
-- [ ] `src/app/globals.css` — Tailwind base imports, CSS custom properties for light and dark themes
-- [ ] Confirm `npm run dev` still starts cleanly
+- [x] `src/lib/axios.ts` — base URL, request/response interceptors, typed error handler
+- [x] `src/providers/QueryProvider.tsx` — `QueryClientProvider` with shared `QueryClient` (staleTime default: 30s)
+- [x] `src/providers/ThemeProvider.tsx` — `next-themes` wrapper with `defaultTheme="dark"`
+- [x] `src/app/layout.tsx` — composes `ThemeProvider` → `QueryProvider` → `{children}` → `<Toaster />`
+- [x] `src/app/globals.css` — Tailwind base imports, CSS custom properties for light and dark themes
+- [x] Confirm `npm run dev` still starts cleanly
 
 ---
 
