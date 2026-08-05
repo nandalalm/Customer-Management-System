@@ -37,6 +37,8 @@ interface CustomerTableProps {
   onView: (customer: Customer) => void;
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
+  /** Notifies parent whenever the visible ordered customer list changes */
+  onCustomersChange?: (customers: Customer[]) => void;
 }
 
 type SortField = "name" | "email" | "phone" | "company" | "status" | "lastContactDate";
@@ -75,6 +77,7 @@ export function CustomerTable({
   onView,
   onEdit,
   onDelete,
+  onCustomersChange,
 }: CustomerTableProps): React.JSX.Element {
   const { filters } = useFilters();
   const [sortBy, setSortBy] = useQueryState("sortBy", parseAsString);
@@ -102,7 +105,9 @@ export function CustomerTable({
   // Sync external query data changes (search, filter, pagination) into local order state
   if (queryCustomers !== prevQueryData && !activeCustomer) {
     setPrevQueryData(queryCustomers);
-    setOrderedCustomers(queryCustomers ?? []);
+    const next = queryCustomers ?? [];
+    setOrderedCustomers(next);
+    onCustomersChange?.(next);
   }
 
   const sensors = useSensors(
