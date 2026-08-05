@@ -1,7 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { BookmarkIcon, PlusIcon, Trash2Icon, CheckIcon } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
+import { BookmarkIcon, PlusIcon, Trash2Icon, CheckIcon, GripVerticalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,8 +31,75 @@ import { useSavedFilters } from "@/hooks/useSavedFilters";
 import { useFilters } from "@/hooks/useFilters";
 import type { SavedFilter } from "@/types";
 
+// ── Sortable filter row ───────────────────────────────────────────────────────
+
+interface SortableFilterRowProps {
+  saved: SavedFilter;
+  onApply: (saved: SavedFilter) => void;
+  onDelete: (id: string) => void;
+}
+
+function SortableFilterRow({
+  saved,
+  onApply,
+  onDelete,
+}: SortableFilterRowProps): React.JSX.Element {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: saved.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.4 : 1,
+      }}
+      className="group flex items-center justify-between rounded-md px-1 py-1 text-xs hover:bg-accent transition-colors"
+    >
+      {/* Drag handle */}
+      <button
+        type="button"
+        aria-label={`Reorder ${saved.name}`}
+        className="mr-1 flex cursor-grab items-center text-muted-foreground/30 hover:text-muted-foreground active:cursor-grabbing"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVerticalIcon className="size-3.5" />
+      </button>
+
+      <button
+        type="button"
+        id={`apply-saved-filter-${saved.id}`}
+        onClick={() => onApply(saved)}
+        className="truncate font-medium text-foreground hover:text-primary text-left flex-1"
+      >
+        {saved.name}
+      </button>
+
+      <button
+        type="button"
+        id={`delete-saved-filter-${saved.id}`}
+        aria-label={`Delete ${saved.name}`}
+        onClick={() => onDelete(saved.id)}
+        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
+      >
+        <Trash2Icon className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
+// ── SavedFilters container ────────────────────────────────────────────────────
+
 export function SavedFilters(): React.JSX.Element {
-  const { savedFilters, saveFilter, deleteFilter } = useSavedFilters();
+  const { savedFilters, saveFilter, deleteFilter, reorderFilters } = useSavedFilters();
   const {
     filters,
     activeFilterCount,
@@ -29,6 +114,11 @@ export function SavedFilters(): React.JSX.Element {
 
   const [open, setOpen] = useState(false);
   const [filterName, setFilterName] = useState("");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   function handleSave(): void {
     if (!filterName.trim()) return;
@@ -45,6 +135,16 @@ export function SavedFilters(): React.JSX.Element {
     setEmail(saved.filters.email ?? "");
     setPhone(saved.filters.phone ?? "");
     setSearch(saved.filters.search ?? "");
+  }
+
+  function handleDragEnd(event: DragEndEvent): void {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = savedFilters.findIndex((f) => f.id === active.id);
+    const newIndex = savedFilters.findIndex((f) => f.id === over.id);
+    const reordered = arrayMove(savedFilters, oldIndex, newIndex);
+    reorderFilters(reordered.map((f) => f.id));
   }
 
   return (
@@ -114,32 +214,28 @@ export function SavedFilters(): React.JSX.Element {
           No saved filters yet
         </p>
       ) : (
-        <div className="space-y-1">
-          {savedFilters.map((saved) => (
-            <div
-              key={saved.id}
-              className="group flex items-center justify-between rounded-md px-2 py-1 text-xs hover:bg-accent transition-colors"
-            >
-              <button
-                type="button"
-                id={`apply-saved-filter-${saved.id}`}
-                onClick={() => handleApply(saved)}
-                className="truncate font-medium text-foreground hover:text-primary text-left flex-1"
-              >
-                {saved.name}
-              </button>
-              <button
-                type="button"
-                id={`delete-saved-filter-${saved.id}`}
-                aria-label={`Delete ${saved.name}`}
-                onClick={() => deleteFilter(saved.id)}
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-              >
-                <Trash2Icon className="size-3.5" />
-              </button>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={savedFilters.map((f) => f.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-0.5">
+              {savedFilters.map((saved) => (
+                <SortableFilterRow
+                  key={saved.id}
+                  saved={saved}
+                  onApply={handleApply}
+                  onDelete={deleteFilter}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );

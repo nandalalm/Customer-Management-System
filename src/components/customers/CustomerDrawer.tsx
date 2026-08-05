@@ -10,6 +10,8 @@ import {
 import { useCustomer } from "@/hooks/useCustomer";
 import { CustomerDetails } from "@/components/customers/CustomerDetails";
 import { CustomerNotes } from "@/components/customers/CustomerNotes";
+import { CustomerForm } from "@/components/customers/CustomerForm";
+import { CustomerAvatar } from "@/components/common/CustomerAvatar";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 
@@ -39,9 +41,7 @@ export function CustomerDrawer({
   function renderContent(): React.JSX.Element {
     if (mode === "create") {
       return (
-        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Customer creation form will be implemented in Stage 17.
-        </div>
+        <CustomerForm onSuccess={() => onOpenChange(false)} />
       );
     }
 
@@ -55,9 +55,10 @@ export function CustomerDrawer({
 
     if (mode === "edit") {
       return (
-        <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Customer edit form for {customer.name} will be implemented in Stage 17.
-        </div>
+        <CustomerForm
+          customer={customer}
+          onSuccess={() => onModeChange("view")}
+        />
       );
     }
 
@@ -92,12 +93,17 @@ export function CustomerDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg p-6 flex flex-col gap-4">
         <SheetHeader className="px-0 pt-0 pb-2 border-b border-border">
-          <SheetTitle className="text-xl font-bold text-foreground">
-            {getHeaderTitle()}
-          </SheetTitle>
-          <SheetDescription className="text-sm text-muted-foreground">
-            {getHeaderDescription()}
-          </SheetDescription>
+          <div className="flex items-center gap-3">
+            {customer && <CustomerAvatar name={customer.name} size="lg" />}
+            <div>
+              <SheetTitle className="text-xl font-bold text-foreground">
+                {getHeaderTitle()}
+              </SheetTitle>
+              <SheetDescription className="text-sm text-muted-foreground">
+                {getHeaderDescription()}
+              </SheetDescription>
+            </div>
+          </div>
         </SheetHeader>
 
         {renderContent()}

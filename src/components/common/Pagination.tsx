@@ -1,12 +1,7 @@
 "use client";
 
 import { parseAsInteger, useQueryState } from "nuqs";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -23,6 +18,36 @@ interface PaginationProps {
   total: number;
 }
 
+function getPageRange(
+  currentPage: number,
+  totalPages: number
+): (number | "ellipsis-start" | "ellipsis-end")[] {
+  if (totalPages <= 4) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  // Near start: 1, 2, 3, ..., totalPages
+  if (currentPage <= 3) {
+    return [1, 2, 3, "ellipsis-end", totalPages];
+  }
+
+  // Near end: 1, ..., totalPages - 2, totalPages - 1, totalPages
+  if (currentPage >= totalPages - 2) {
+    return [1, "ellipsis-start", totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  // In the middle: 1, ..., currentPage - 1, currentPage, currentPage + 1, ..., totalPages
+  return [
+    1,
+    "ellipsis-start",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "ellipsis-end",
+    totalPages,
+  ];
+}
+
 export function Pagination({
   totalPages,
   total,
@@ -33,16 +58,15 @@ export function Pagination({
     parseAsInteger.withDefault(10)
   );
 
+  const safeTotalPages = Math.max(totalPages, 1);
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
 
-  // base-ui Select passes `string | null`; null only fires if the value
-  // is programmatically cleared, which cannot happen here with fixed options.
+  const pageRange = getPageRange(page, safeTotalPages);
+
   async function handlePageSizeChange(value: string | null): Promise<void> {
     if (value === null) return;
     await setPageSize(Number(value));
-    // Reset to page 1 whenever the page size changes so we don't land on a
-    // page that no longer exists after the list shrinks.
     await setPage(1);
   }
 
@@ -53,7 +77,7 @@ export function Pagination({
         {total === 0 ? "No results" : `${from}–${to} of ${total} customers`}
       </p>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:flex-nowrap">
         {/* Page size selector */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground">Rows per page</span>
@@ -63,7 +87,7 @@ export function Pagination({
           >
             <SelectTrigger
               id="page-size-select"
-              className="h-7 w-16 text-xs"
+              className="h-8 w-16 text-xs"
             >
               <SelectValue />
             </SelectTrigger>
@@ -77,52 +101,62 @@ export function Pagination({
           </Select>
         </div>
 
-        {/* Navigation */}
-        <div className="flex items-center gap-0.5">
-          <Button
-            id="pagination-first"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="First page"
-            disabled={page <= 1}
-            onClick={() => setPage(1)}
-          >
-            <ChevronsLeftIcon className="size-4" />
-          </Button>
+        {/* Numbered pagination bar */}
+        <div className="flex items-center gap-1">
+          {/* Previous button */}
           <Button
             id="pagination-prev"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Previous page"
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1 px-2.5 text-xs font-medium"
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
           >
-            <ChevronLeftIcon className="size-4" />
+            <ChevronLeftIcon className="size-3.5" />
+            <span>Prev</span>
           </Button>
 
-          <span className="min-w-[5rem] text-center text-xs text-muted-foreground">
-            Page {page} of {Math.max(totalPages, 1)}
-          </span>
+          {/* Numbered page buttons & ellipsis */}
+          {pageRange.map((item, index) => {
+            if (typeof item === "string") {
+              return (
+                <span
+                  key={`${item}-${index}`}
+                  className="flex h-8 w-6 items-center justify-center text-xs text-muted-foreground select-none font-semibold"
+                >
+                  …
+                </span>
+              );
+            }
 
+            const isCurrent = item === page;
+
+            return (
+              <Button
+                key={item}
+                id={`pagination-page-${item}`}
+                variant={isCurrent ? "default" : "outline"}
+                size="sm"
+                className="h-8 w-8 p-0 text-xs font-medium"
+                aria-current={isCurrent ? "page" : undefined}
+                onClick={() => setPage(item)}
+              >
+                {item}
+              </Button>
+            );
+          })}
+
+          {/* Next button */}
           <Button
             id="pagination-next"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Next page"
-            disabled={page >= totalPages}
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1 px-2.5 text-xs font-medium"
+            disabled={page >= safeTotalPages}
             onClick={() => setPage(page + 1)}
           >
-            <ChevronRightIcon className="size-4" />
-          </Button>
-          <Button
-            id="pagination-last"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Last page"
-            disabled={page >= totalPages}
-            onClick={() => setPage(totalPages)}
-          >
-            <ChevronsRightIcon className="size-4" />
+            <span>Next</span>
+            <ChevronRightIcon className="size-3.5" />
           </Button>
         </div>
       </div>

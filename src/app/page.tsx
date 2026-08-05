@@ -10,6 +10,7 @@ import {
   CustomerDrawer,
   type DrawerMode,
 } from "@/components/customers/CustomerDrawer";
+import { DeleteConfirmDialog } from "@/components/customers/DeleteConfirmDialog";
 import type { Customer } from "@/types";
 
 export default function Home(): React.JSX.Element {
@@ -51,6 +52,10 @@ export default function Home(): React.JSX.Element {
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("view");
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null);
 
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+
   const handleView = useCallback((customer: Customer): void => {
     setActiveCustomerId(customer.id);
     setDrawerMode("view");
@@ -69,8 +74,10 @@ export default function Home(): React.JSX.Element {
     setDrawerOpen(true);
   }, []);
 
-  // Delete handler will be wired in Stage 17
-  function handleDelete(): void {}
+  const handleDelete = useCallback((customer: Customer): void => {
+    setCustomerToDelete(customer);
+    setDeleteDialogOpen(true);
+  }, []);
 
   return (
     <Suspense fallback={<LoadingSkeleton rows={10} />}>
@@ -94,6 +101,17 @@ export default function Home(): React.JSX.Element {
           customerId={activeCustomerId}
           mode={drawerMode}
           onModeChange={setDrawerMode}
+        />
+        <DeleteConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          customer={customerToDelete}
+          onSuccess={() => {
+            // If the deleted customer was open in the drawer, close it
+            if (customerToDelete?.id === activeCustomerId) {
+              setDrawerOpen(false);
+            }
+          }}
         />
       </div>
     </Suspense>

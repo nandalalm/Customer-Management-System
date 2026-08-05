@@ -1,9 +1,12 @@
 "use client";
 
-import { EyeIcon, PencilIcon, Trash2Icon, MoreHorizontalIcon } from "lucide-react";
+import { EyeIcon, PencilIcon, Trash2Icon, MoreHorizontalIcon, GripVerticalIcon } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CustomerAvatar } from "@/components/common/CustomerAvatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +25,11 @@ interface CustomerRowProps {
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
   variant?: "row" | "card";
+  index?: number;
+  /** Whether this row participates in sortable DnD */
+  isDraggable?: boolean;
+  /** Whether this row is the DragOverlay ghost — skips useSortable transform */
+  isDragOverlay?: boolean;
 }
 
 export function CustomerRow({
@@ -32,7 +40,30 @@ export function CustomerRow({
   onEdit,
   onDelete,
   variant = "row",
+  index,
+  isDraggable = false,
+  isDragOverlay = false,
 }: CustomerRowProps): React.JSX.Element {
+  // Always call useSortable — conditionally applying its output below.
+  // Hooks must not be called conditionally, so we pass a stable id regardless.
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: customer.id, disabled: !isDraggable });
+
+  const style =
+    isDraggable && !isDragOverlay
+      ? {
+          transform: CSS.Transform.toString(transform),
+          transition,
+          opacity: isDragging ? 0.4 : 1,
+        }
+      : undefined;
+
   const statusBadge =
     customer.status === "active" ? (
       <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20">
@@ -91,7 +122,7 @@ export function CustomerRow({
         aria-label={`View ${customer.name}`}
       >
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <Checkbox
               id={`select-mobile-${customer.id}`}
               checked={isSelected}
@@ -101,6 +132,7 @@ export function CustomerRow({
               }
               aria-label={`Select ${customer.name}`}
             />
+            <CustomerAvatar name={customer.name} index={index} size="sm" />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{customer.name}</p>
               <p className="truncate text-xs text-muted-foreground">
@@ -128,9 +160,33 @@ export function CustomerRow({
   // ── Desktop table row view ──────────────────────────────────────────────────
   return (
     <tr
+      ref={isDraggable ? setNodeRef : undefined}
+      style={style}
       className="border-b border-border hover:bg-muted/40 cursor-pointer transition-colors"
-      onClick={() => onView(customer)}
+      onClick={() => {
+        // Do not open drawer if the user just finished a drag
+        if (isDragging) return;
+        onView(customer);
+      }}
     >
+      {/* Drag handle — only rendered when sortable DnD is active */}
+      {isDraggable && (
+        <td
+          className="w-6 px-1 py-2.5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            aria-label={`Reorder ${customer.name}`}
+            className="flex cursor-grab items-center text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVerticalIcon className="size-4" />
+          </button>
+        </td>
+      )}
+
       {/* Checkbox */}
       <td className="w-10 px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
         <Checkbox
@@ -145,7 +201,10 @@ export function CustomerRow({
 
       {/* Name */}
       <td className="px-3 py-2.5">
-        <span className="text-sm font-medium">{customer.name}</span>
+        <div className="flex items-center gap-2.5">
+          <CustomerAvatar name={customer.name} index={index} size="sm" />
+          <span className="text-sm font-medium">{customer.name}</span>
+        </div>
       </td>
 
       {/* Email */}

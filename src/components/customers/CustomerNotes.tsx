@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FileTextIcon, SaveIcon, Loader2Icon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,17 @@ export function CustomerNotes({
   initialNotes = "",
 }: CustomerNotesProps): React.JSX.Element {
   const [notes, setNotes] = useState<string>(initialNotes);
+  const [prevNotes, setPrevNotes] = useState<string>(initialNotes);
   const { mutate: updateCustomer, isPending } = useUpdateCustomer();
 
-  // Sync state if initialNotes prop changes (e.g. query cache update)
-  useEffect(() => {
+  // Sync state when the initialNotes prop changes (e.g. after an optimistic
+  // update resolves or the user switches to a different customer). Updating
+  // state during render avoids the effect-then-re-render cascade that
+  // react-hooks/set-state-in-effect flags.
+  if (initialNotes !== prevNotes) {
+    setPrevNotes(initialNotes);
     setNotes(initialNotes);
-  }, [initialNotes]);
+  }
 
   const isUnchanged = notes === initialNotes;
 

@@ -1,17 +1,34 @@
 "use client";
 
-import { parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { parseAsString, useQueryState, parseAsInteger } from "nuqs";
 import { ChevronUpIcon, ChevronDownIcon, ChevronsUpDownIcon } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragStartEvent,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  sortableKeyboardCoordinates,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { useCustomers } from "@/hooks/useCustomers";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Pagination } from "@/components/common/Pagination";
+import { DraggableCustomerList } from "@/components/customers/DraggableCustomerList";
 import { CustomerRow } from "@/components/customers/CustomerRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFilters } from "@/hooks/useFilters";
 import type { Customer, SortDirection, CustomerQueryParams } from "@/types";
-import { parseAsInteger } from "nuqs";
 
 interface CustomerTableProps {
   selectedIds: Set<string>;
@@ -77,6 +94,44 @@ export function CustomerTable({
 
   const { data, isLoading, isError, refetch } = useCustomers(params);
 
+  const queryCustomers = data?.data;
+  const [prevQueryData, setPrevQueryData] = useState<Customer[] | undefined>(queryCustomers);
+  const [orderedCustomers, setOrderedCustomers] = useState<Customer[]>(queryCustomers ?? []);
+  const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
+
+  // Sync external query data changes (search, filter, pagination) into local order state
+  if (queryCustomers !== prevQueryData && !activeCustomer) {
+    setPrevQueryData(queryCustomers);
+    setOrderedCustomers(queryCustomers ?? []);
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragStart(event: DragStartEvent): void {
+    const found = orderedCustomers.find((c) => c.id === event.active.id);
+    setActiveCustomer(found ?? null);
+  }
+
+  function handleDragEnd(event: DragEndEvent): void {
+    const { active, over } = event;
+    setActiveCustomer(null);
+
+    if (!over || active.id === over.id) return;
+
+    setOrderedCustomers((prev) => {
+      const oldIndex = prev.findIndex((c) => c.id === active.id);
+      const newIndex = prev.findIndex((c) => c.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  }
+
   async function handleSort(field: SortField): Promise<void> {
     if (sortBy !== field) {
       // New column — always start ascending
@@ -93,11 +148,10 @@ export function CustomerTable({
     }
   }
 
-  const customers = data?.data ?? [];
   const allPageSelected =
-    customers.length > 0 && customers.every((c) => selectedIds.has(c.id));
+    orderedCustomers.length > 0 && orderedCustomers.every((c) => selectedIds.has(c.id));
   const somePageSelected =
-    !allPageSelected && customers.some((c) => selectedIds.has(c.id));
+    !allPageSelected && orderedCustomers.some((c) => selectedIds.has(c.id));
 
   if (isLoading) {
     return <LoadingSkeleton rows={pageSize} />;
@@ -107,7 +161,7 @@ export function CustomerTable({
     return <ErrorState onRetry={() => refetch()} />;
   }
 
-  if (customers.length === 0) {
+  if (orderedCustomers.length === 0) {
     return (
       <EmptyState
         title="No customers found"
@@ -120,67 +174,91 @@ export function CustomerTable({
     <div className="flex flex-col">
       {/* ── Desktop table ─────────────────────────────────────────────────────── */}
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/50">
-              {/* Select-all checkbox */}
-              <th className="w-10 px-3 py-2.5">
-                <Checkbox
-                  id="select-all"
-                  checked={allPageSelected}
-                  // indeterminate not directly in shadcn — convey via aria
-                  aria-checked={somePageSelected ? "mixed" : allPageSelected}
-                  onCheckedChange={(checked) =>
-                    onSelectAll(checked === true, customers.map((c) => c.id))
-                  }
-                  aria-label="Select all on this page"
-                />
-              </th>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                {/* Drag-handle column header — no label, just reserved space */}
+                <th className="w-6 px-1 py-2.5" aria-hidden="true" />
 
-              {COLUMNS.map((col) => (
-                <th key={col.key} className="px-3 py-2.5">
-                  <button
-                    id={`sort-${col.key}`}
-                    type="button"
-                    className="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => handleSort(col.key)}
-                    aria-label={`Sort by ${col.label}`}
-                  >
-                    {col.label}
-                    <SortIcon
-                      field={col.key}
-                      activeField={sortBy}
-                      direction={sortDir}
-                    />
-                  </button>
+                {/* Select-all checkbox */}
+                <th className="w-10 px-3 py-2.5">
+                  <Checkbox
+                    id="select-all"
+                    checked={allPageSelected}
+                    aria-checked={somePageSelected ? "mixed" : allPageSelected}
+                    onCheckedChange={(checked) =>
+                      onSelectAll(checked === true, orderedCustomers.map((c) => c.id))
+                    }
+                    aria-label="Select all on this page"
+                  />
                 </th>
-              ))}
 
-              {/* Actions column — not sortable */}
-              <th className="w-10 px-3 py-2.5" />
-            </tr>
-          </thead>
+                {COLUMNS.map((col) => (
+                  <th key={col.key} className="px-3 py-2.5">
+                    <button
+                      id={`sort-${col.key}`}
+                      type="button"
+                      className="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => handleSort(col.key)}
+                      aria-label={`Sort by ${col.label}`}
+                    >
+                      {col.label}
+                      <SortIcon
+                        field={col.key}
+                        activeField={sortBy}
+                        direction={sortDir}
+                      />
+                    </button>
+                  </th>
+                ))}
 
-          <tbody>
-            {customers.map((customer) => (
-              <CustomerRow
-                key={customer.id}
-                variant="row"
-                customer={customer}
-                isSelected={selectedIds.has(customer.id)}
-                onSelectChange={onSelectChange}
-                onView={onView}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
-          </tbody>
-        </table>
+                {/* Actions column — not sortable */}
+                <th className="w-10 px-3 py-2.5" />
+              </tr>
+            </thead>
+
+            <DraggableCustomerList
+              customers={orderedCustomers}
+              selectedIds={selectedIds}
+              onSelectChange={onSelectChange}
+              onView={onView}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          </table>
+
+          {/* DragOverlay ghost row — rendered outside <table> element */}
+          <DragOverlay>
+            {activeCustomer ? (
+              <table style={{ width: "100%" }}>
+                <tbody>
+                  <CustomerRow
+                    variant="row"
+                    customer={activeCustomer}
+                    isSelected={selectedIds.has(activeCustomer.id)}
+                    onSelectChange={() => undefined}
+                    onView={() => undefined}
+                    onEdit={() => undefined}
+                    onDelete={() => undefined}
+                    isDragOverlay
+                  />
+                </tbody>
+              </table>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       {/* ── Mobile card list ──────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-2 p-3 md:hidden">
-        {customers.map((customer) => (
+        {orderedCustomers.map((customer) => (
           <CustomerRow
             key={`card-${customer.id}`}
             variant="card"
