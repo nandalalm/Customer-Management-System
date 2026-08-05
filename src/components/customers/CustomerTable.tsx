@@ -165,6 +165,7 @@ export function CustomerTable({
             {customers.map((customer) => (
               <CustomerRow
                 key={customer.id}
+                variant="row"
                 customer={customer}
                 isSelected={selectedIds.has(customer.id)}
                 onSelectChange={onSelectChange}
@@ -181,7 +182,8 @@ export function CustomerTable({
       <div className="flex flex-col gap-2 p-3 md:hidden">
         {customers.map((customer) => (
           <CustomerRow
-            key={customer.id}
+            key={`card-${customer.id}`}
+            variant="card"
             customer={customer}
             isSelected={selectedIds.has(customer.id)}
             onSelectChange={onSelectChange}

@@ -21,6 +21,7 @@ interface CustomerRowProps {
   onView: (customer: Customer) => void;
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
+  variant?: "row" | "card";
 }
 
 export function CustomerRow({
@@ -30,6 +31,7 @@ export function CustomerRow({
   onView,
   onEdit,
   onDelete,
+  variant = "row",
 }: CustomerRowProps): React.JSX.Element {
   const statusBadge =
     customer.status === "active" ? (
@@ -77,54 +79,56 @@ export function CustomerRow({
     </DropdownMenu>
   );
 
-  // ── Mobile card (visible below md) ──────────────────────────────────────────
-  const mobileCard = (
-    <div
-      className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 md:hidden"
-      onClick={() => onView(customer)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && onView(customer)}
-      aria-label={`View ${customer.name}`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <Checkbox
-            id={`select-mobile-${customer.id}`}
-            checked={isSelected}
-            onClick={(e) => e.stopPropagation()}
-            onCheckedChange={(checked) =>
-              onSelectChange(customer.id, checked === true)
-            }
-            aria-label={`Select ${customer.name}`}
-          />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{customer.name}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {customer.company}
-            </p>
+  // ── Mobile card view ────────────────────────────────────────────────────────
+  if (variant === "card") {
+    return (
+      <div
+        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3"
+        onClick={() => onView(customer)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && onView(customer)}
+        aria-label={`View ${customer.name}`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Checkbox
+              id={`select-mobile-${customer.id}`}
+              checked={isSelected}
+              onClick={(e) => e.stopPropagation()}
+              onCheckedChange={(checked) =>
+                onSelectChange(customer.id, checked === true)
+              }
+              aria-label={`Select ${customer.name}`}
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{customer.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {customer.company}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            {statusBadge}
+            {actions}
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {statusBadge}
-          {actions}
+
+        <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+          <span className="truncate">{customer.email}</span>
+          <span className="truncate">{formatPhone(customer.phone)}</span>
+          <span className="col-span-2 text-right">
+            Last contact: {formatDate(customer.lastContactDate)}
+          </span>
         </div>
       </div>
+    );
+  }
 
-      <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-        <span className="truncate">{customer.email}</span>
-        <span className="truncate">{formatPhone(customer.phone)}</span>
-        <span className="col-span-2 text-right">
-          Last contact: {formatDate(customer.lastContactDate)}
-        </span>
-      </div>
-    </div>
-  );
-
-  // ── Desktop table row (visible at md and above) ──────────────────────────────
-  const desktopRow = (
+  // ── Desktop table row view ──────────────────────────────────────────────────
+  return (
     <tr
-      className="hidden md:table-row border-b border-border hover:bg-muted/40 cursor-pointer transition-colors"
+      className="border-b border-border hover:bg-muted/40 cursor-pointer transition-colors"
       onClick={() => onView(customer)}
     >
       {/* Checkbox */}
@@ -172,12 +176,5 @@ export function CustomerRow({
         {actions}
       </td>
     </tr>
-  );
-
-  return (
-    <>
-      {mobileCard}
-      {desktopRow}
-    </>
   );
 }

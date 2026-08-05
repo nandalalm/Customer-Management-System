@@ -6,6 +6,11 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { CustomerTable } from "@/components/customers/CustomerTable";
 import { FilterSidebar } from "@/components/filters/FilterSidebar";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import {
+  CustomerDrawer,
+  type DrawerMode,
+} from "@/components/customers/CustomerDrawer";
+import type { Customer } from "@/types";
 
 export default function Home(): React.JSX.Element {
   // Bulk selection state — lives here so it can be cleared on page/filter change in Stage 19
@@ -41,15 +46,36 @@ export default function Home(): React.JSX.Element {
     []
   );
 
-  // These handlers will open the drawer/dialog — stubbed until Stage 16/17
-  function handleView(): void {}
-  function handleEdit(): void {}
+  // Customer drawer state
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("view");
+  const [activeCustomerId, setActiveCustomerId] = useState<string | null>(null);
+
+  const handleView = useCallback((customer: Customer): void => {
+    setActiveCustomerId(customer.id);
+    setDrawerMode("view");
+    setDrawerOpen(true);
+  }, []);
+
+  const handleEdit = useCallback((customer: Customer): void => {
+    setActiveCustomerId(customer.id);
+    setDrawerMode("edit");
+    setDrawerOpen(true);
+  }, []);
+
+  const handleAddCustomer = useCallback((): void => {
+    setActiveCustomerId(null);
+    setDrawerMode("create");
+    setDrawerOpen(true);
+  }, []);
+
+  // Delete handler will be wired in Stage 17
   function handleDelete(): void {}
 
   return (
     <Suspense fallback={<LoadingSkeleton rows={10} />}>
       <div className="flex h-screen flex-col overflow-hidden">
-        <Header onAddCustomer={() => {}} />
+        <Header onAddCustomer={handleAddCustomer} />
         <PageLayout sidebar={<FilterSidebar />}>
           <div className="flex flex-1 flex-col p-3 sm:p-4">
             <CustomerTable
@@ -62,6 +88,13 @@ export default function Home(): React.JSX.Element {
             />
           </div>
         </PageLayout>
+        <CustomerDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          customerId={activeCustomerId}
+          mode={drawerMode}
+          onModeChange={setDrawerMode}
+        />
       </div>
     </Suspense>
   );
