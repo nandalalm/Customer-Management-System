@@ -9,7 +9,8 @@ import { ErrorState } from "@/components/common/ErrorState";
 import { Pagination } from "@/components/common/Pagination";
 import { CustomerRow } from "@/components/customers/CustomerRow";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { Customer, SortDirection } from "@/types";
+import { useFilters } from "@/hooks/useFilters";
+import type { Customer, SortDirection, CustomerQueryParams } from "@/types";
 import { parseAsInteger } from "nuqs";
 
 interface CustomerTableProps {
@@ -58,19 +59,23 @@ export function CustomerTable({
   onEdit,
   onDelete,
 }: CustomerTableProps): React.JSX.Element {
+  const { filters } = useFilters();
   const [sortBy, setSortBy] = useQueryState("sortBy", parseAsString);
   const [sortDir, setSortDir] = useQueryState("sortDir", parseAsString);
   const [page] = useQueryState("page", parseAsInteger.withDefault(1));
   const [pageSize] = useQueryState("pageSize", parseAsInteger.withDefault(10));
 
-  // Build params — undefined fields are omitted from the query key and request
-  const params = {
+  // Build params — spread filters and pagination/sorting
+  const params: CustomerQueryParams = {
+    ...filters,
     page,
     pageSize,
-    ...(sortBy ? { field: sortBy as SortField, direction: (sortDir ?? "asc") as SortDirection } : {}),
+    ...(sortBy
+      ? { field: sortBy as keyof Customer, direction: (sortDir ?? "asc") as SortDirection }
+      : {}),
   };
 
-  const { data, isLoading, isError, refetch } = useCustomers(params as Parameters<typeof useCustomers>[0]);
+  const { data, isLoading, isError, refetch } = useCustomers(params);
 
   async function handleSort(field: SortField): Promise<void> {
     if (sortBy !== field) {

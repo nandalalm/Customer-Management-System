@@ -40,11 +40,6 @@ export function useFilters(): UseFiltersReturn {
     shallow: true,
   });
 
-  const resetPage = useCallback(
-    () => setValues({ page: "1" }),
-    [setValues]
-  );
-
   const setSearch = useCallback(
     (value: string) => {
       setValues({ search: value || null, page: "1" });

@@ -67,7 +67,7 @@ const seedData: SeedEntry[] = [
 ];
 
 function seedStore(): void {
-  seedData.forEach((entry, index) => {
+  seedData.forEach((entry) => {
     const id = crypto.randomUUID();
     customerStore.set(id, {
       ...entry,
