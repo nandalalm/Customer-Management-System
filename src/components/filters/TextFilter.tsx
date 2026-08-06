@@ -29,6 +29,7 @@ export function TextFilter({
       <Input
         id={id}
         type={onlyNumbers ? "tel" : "text"}
+        autoComplete="off"
         placeholder={placeholder}
         value={value}
         onChange={(e) => {

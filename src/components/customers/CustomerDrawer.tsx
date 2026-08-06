@@ -23,6 +23,7 @@ interface CustomerDrawerProps {
   customerId: string | null;
   mode: DrawerMode;
   onModeChange: (mode: DrawerMode) => void;
+  onDelete?: (customer: Customer) => void;
 }
 
 export function CustomerDrawer({
@@ -31,6 +32,7 @@ export function CustomerDrawer({
   customerId,
   mode,
   onModeChange,
+  onDelete,
 }: CustomerDrawerProps): React.JSX.Element {
   const { data, isLoading, isError, refetch } = useCustomer(
     open && mode !== "create" ? customerId : null
@@ -68,6 +70,7 @@ export function CustomerDrawer({
         <CustomerDetails
           customer={customer}
           onEdit={() => onModeChange("edit")}
+          onDelete={() => onDelete?.(customer)}
         />
         <CustomerNotes
           customerId={customer.id}

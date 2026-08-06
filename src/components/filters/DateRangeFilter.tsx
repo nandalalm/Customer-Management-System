@@ -60,7 +60,7 @@ function DatePickerInput({
             <CalendarIcon className="size-3.5 shrink-0 text-muted-foreground" />
             {selected ? (
               <span className="truncate text-foreground font-medium">
-                {format(selected, "yyyy-MM-dd")}
+                {format(selected, "dd-MM-yyyy")}
               </span>
             ) : (
               <span className="truncate text-muted-foreground">{placeholder}</span>
@@ -102,7 +102,7 @@ export function DateRangeFilter({
       <DatePickerInput
         id="date-filter-from"
         label="From"
-        placeholder="2023-10-DD"
+        placeholder="dd-mm-yyyy"
         value={dateFrom}
         onChange={onDateFromChange}
         disabled={dateTo ? (date) => date > new Date(dateTo) : undefined}
@@ -110,7 +110,7 @@ export function DateRangeFilter({
       <DatePickerInput
         id="date-filter-to"
         label="To"
-        placeholder="2023-12-31"
+        placeholder="dd-mm-yyyy"
         value={dateTo}
         onChange={onDateToChange}
         disabled={dateFrom ? (date) => date < new Date(dateFrom) : undefined}

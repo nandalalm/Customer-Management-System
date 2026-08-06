@@ -108,6 +108,7 @@ function FormItem({
 
 function FormLabel({
   className,
+  htmlFor,
   ...props
 }: React.ComponentProps<typeof Label>): React.JSX.Element {
   const { formItemId } = useFormField();
@@ -116,7 +117,7 @@ function FormLabel({
     <Label
       data-slot="form-label"
       className={cn(className)}
-      htmlFor={formItemId}
+      htmlFor={htmlFor || formItemId}
       {...props}
     />
   );

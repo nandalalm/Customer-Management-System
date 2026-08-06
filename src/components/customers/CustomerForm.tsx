@@ -121,11 +121,12 @@ export function CustomerForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
+              <FormLabel htmlFor="customer-form-name">Full Name</FormLabel>
               <FormControl>
                 <Input
                   id="customer-form-name"
                   placeholder="Jane Smith"
+                  autoComplete="name"
                   {...field}
                 />
               </FormControl>
@@ -140,12 +141,13 @@ export function CustomerForm({
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel htmlFor="customer-form-email">Email Address</FormLabel>
               <FormControl>
                 <Input
                   id="customer-form-email"
                   type="email"
                   placeholder="jane@company.com"
+                  autoComplete="email"
                   {...field}
                 />
               </FormControl>
@@ -165,7 +167,7 @@ export function CustomerForm({
 
               return (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel htmlFor="customer-form-phone">Phone Number</FormLabel>
                   <FormControl>
                     <div className="relative flex items-center">
                       <span className="inline-flex h-9 items-center rounded-l-md border border-r-0 border-border bg-muted/60 px-3 text-xs font-medium text-muted-foreground select-none shrink-0">
@@ -173,10 +175,11 @@ export function CustomerForm({
                       </span>
                       <Input
                         id="customer-form-phone"
-                        type="text"
+                        type="tel"
                         inputMode="numeric"
                         placeholder="9876543210"
                         maxLength={10}
+                        autoComplete="tel"
                         value={rawDigits}
                         onChange={(e) => {
                           const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -197,11 +200,12 @@ export function CustomerForm({
             name="company"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company</FormLabel>
+                <FormLabel htmlFor="customer-form-company">Company</FormLabel>
                 <FormControl>
                   <Input
                     id="customer-form-company"
                     placeholder="Acme Corp"
+                    autoComplete="organization"
                     {...field}
                   />
                 </FormControl>
@@ -218,7 +222,7 @@ export function CustomerForm({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel htmlFor="customer-form-status">Status</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger
@@ -243,11 +247,12 @@ export function CustomerForm({
             name="lastContactDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Last Contact Date</FormLabel>
+                <FormLabel htmlFor="customer-form-last-contact">Last Contact Date</FormLabel>
                 <FormControl>
                   <Input
                     id="customer-form-last-contact"
                     type="date"
+                    autoComplete="off"
                     {...field}
                     value={field.value ?? ""}
                     className="[color-scheme:dark] dark:[color-scheme:dark]"
@@ -265,12 +270,13 @@ export function CustomerForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel htmlFor="customer-form-notes">Notes</FormLabel>
               <FormControl>
                 <Textarea
                   id="customer-form-notes"
                   placeholder="Any relevant details about this customer…"
                   rows={3}
+                  autoComplete="off"
                   className="resize-y"
                   {...field}
                   value={field.value ?? ""}

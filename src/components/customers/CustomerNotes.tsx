@@ -39,14 +39,14 @@ export function CustomerNotes({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-4">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/10 p-3.5 sm:p-4">
+      <div className="flex items-center justify-between gap-2 min-w-0">
         <label
           htmlFor={`notes-input-${customerId}`}
-          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground min-w-0 shrink"
         >
-          <FileTextIcon className="size-3.5 text-primary" />
-          Notes & Comments
+          <FileTextIcon className="size-3.5 text-primary shrink-0" />
+          <span className="truncate">Notes & Comments</span>
         </label>
         <Button
           id="save-customer-notes-btn"
@@ -54,13 +54,14 @@ export function CustomerNotes({
           size="sm"
           onClick={handleSaveNotes}
           disabled={isPending || isUnchanged}
+          className="h-8 text-xs gap-1.5 shrink-0 px-2.5 sm:px-3"
         >
           {isPending ? (
-            <Loader2Icon className="size-3.5 animate-spin" />
+            <Loader2Icon className="size-3.5 animate-spin shrink-0" />
           ) : (
-            <SaveIcon className="size-3.5" />
+            <SaveIcon className="size-3.5 shrink-0" />
           )}
-          Save Notes
+          <span>Save<span className="hidden sm:inline"> Notes</span></span>
         </Button>
       </div>
 

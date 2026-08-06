@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   CalendarIcon,
   PencilIcon,
+  Trash2Icon,
   MailIcon,
   PhoneIcon,
   BuildingIcon,
@@ -22,11 +23,13 @@ import type { Customer } from "@/types";
 interface CustomerDetailsProps {
   customer: Customer;
   onEdit: () => void;
+  onDelete?: () => void;
 }
 
 export function CustomerDetails({
   customer,
   onEdit,
+  onDelete,
 }: CustomerDetailsProps): React.JSX.Element {
   const { mutate: updateCustomer, isPending } = useUpdateCustomer();
   const [copiedField, setCopiedField] = useState<"email" | "phone" | null>(null);
@@ -47,17 +50,28 @@ export function CustomerDetails({
     setTimeout(() => setCopiedField(null), 2000);
   }
 
+  const statusBadge =
+    customer.status === "active" ? (
+      <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold">
+        Active
+      </Badge>
+    ) : (
+      <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-semibold">
+        Inactive
+      </Badge>
+    );
+
   return (
     <div className="flex flex-col gap-5">
       {/* Top action bar */}
-      <div className="flex items-center justify-between gap-2 border-b border-border pb-4">
-        <Badge
-          variant={customer.status === "active" ? "default" : "secondary"}
-          className="capitalize px-2.5 py-0.5 text-xs font-semibold"
-        >
-          {customer.status}
-        </Badge>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 border-b border-border pb-4">
+        {/* Status + Edit Button */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Status:</span>
+            {statusBadge}
+          </div>
+
           <Button
             id="edit-customer-btn"
             type="button"
@@ -69,6 +83,10 @@ export function CustomerDetails({
             <PencilIcon className="size-3.5" />
             Edit
           </Button>
+        </div>
+
+        {/* Action Buttons Row */}
+        <div className="flex items-center gap-2 w-full">
           <Button
             id="update-last-contact-btn"
             type="button"
@@ -76,15 +94,30 @@ export function CustomerDetails({
             size="sm"
             onClick={handleUpdateLastContact}
             disabled={isPending}
-            className="h-8 text-xs gap-1.5"
+            className="flex-1 h-8 text-xs gap-1.5 justify-center min-w-0"
           >
             {isPending ? (
-              <Loader2Icon className="size-3.5 animate-spin" />
+              <Loader2Icon className="size-3.5 animate-spin shrink-0" />
             ) : (
-              <CalendarIcon className="size-3.5" />
+              <CalendarIcon className="size-3.5 shrink-0" />
             )}
-            Update Last Contact
+            <span className="truncate">Update Last Contact</span>
           </Button>
+
+          {onDelete && (
+            <Button
+              id="delete-customer-details-btn"
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={onDelete}
+              className="h-8 text-xs gap-1.5 justify-center shrink-0 min-[470px]:px-3 px-2.5"
+              aria-label="Delete customer"
+            >
+              <Trash2Icon className="size-3.5 shrink-0" />
+              <span className="hidden min-[470px]:inline">Delete</span>
+            </Button>
+          )}
         </div>
       </div>
 
