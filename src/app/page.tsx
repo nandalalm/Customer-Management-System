@@ -155,11 +155,15 @@ function HomeContent(): React.JSX.Element {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
-  const handleView = useCallback((customer: Customer): void => {
-    setActiveCustomerId(customer.id);
-    setDrawerMode("view");
-    setDrawerOpen(true);
-  }, []);
+  const handleView = useCallback(
+    (customer: Customer): void => {
+      handleSelectChange(customer.id, false);
+      setActiveCustomerId(customer.id);
+      setDrawerMode("view");
+      setDrawerOpen(true);
+    },
+    [handleSelectChange]
+  );
 
   const handleEdit = useCallback((customer: Customer): void => {
     setActiveCustomerId(customer.id);
