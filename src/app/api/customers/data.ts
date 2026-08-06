@@ -171,16 +171,18 @@ const seedData: SeedEntry[] = [
 ];
 
 function seedStore(): void {
-  const now = new Date();
+  // Use a fixed base date (2026-08-05) so dates are deterministic across serverless instances
+  const baseTime = new Date("2026-08-05T12:00:00.000Z").getTime();
 
   seedData.forEach((entry, index) => {
-    const id = crypto.randomUUID();
-    // Guarantee that no seed entry has today's date so newly added customers (created today)
-    // always sort to the top when ordered by recent contact descending.
-    // Days ago ranges from 1 day ago (index 0) to 150 days ago (index 149).
+    // Generate deterministic valid UUIDs so all Vercel serverless function instances
+    // share the exact same IDs for all 150 seed customers.
+    const hexIndex = String(index + 1).padStart(12, "0");
+    const id = `00000000-0000-4000-8000-${hexIndex}`;
+
     const daysAgo = index + 1;
-    const contactDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
-    const createdDate = new Date(now.getTime() - (daysAgo + 30) * 24 * 60 * 60 * 1000);
+    const contactDate = new Date(baseTime - daysAgo * 24 * 60 * 60 * 1000);
+    const createdDate = new Date(baseTime - (daysAgo + 30) * 24 * 60 * 60 * 1000);
 
     customerStore.set(id, {
       ...entry,
