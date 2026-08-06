@@ -53,11 +53,13 @@ export function useUpdateCustomer(): ReturnType<
         });
       }
 
-      // Optimistically patch any list cache entries that contain this record
+      // Optimistically patch any list cache entries that contain this record.
+      // The wildcard key also matches ["customers", id] (APIResponse<Customer>)
+      // where data is a single object — Array.isArray guards against calling .map() on it.
       queryClient.setQueriesData<PaginatedResponse<Customer>>(
         { queryKey: ["customers"] },
         (old) => {
-          if (!old) return old;
+          if (!old || !Array.isArray(old.data)) return old;
           return {
             ...old,
             data: old.data.map((c) =>

@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <NuqsAdapter>{children}</NuqsAdapter>
           </QueryProvider>
         </ThemeProvider>
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="top-right" closeButton duration={1500} />
       </body>
     </html>
   );

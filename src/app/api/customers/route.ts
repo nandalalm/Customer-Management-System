@@ -23,8 +23,8 @@ export async function GET(
     const dateTo = searchParams.get("dateTo");
     const email = searchParams.get("email")?.toLowerCase() ?? "";
     const phone = searchParams.get("phone") ?? "";
-    const sortBy = searchParams.get("sortBy") as keyof Customer | null;
-    const sortDir = searchParams.get("sortDir") ?? "asc";
+    const sortBy = (searchParams.get("sortBy") || searchParams.get("field")) as keyof Customer | null;
+    const sortDir = searchParams.get("sortDir") || searchParams.get("direction") || "asc";
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const pageSize = Math.min(
       100,
@@ -76,15 +76,17 @@ export async function GET(
     // ── Sort ──────────────────────────────────────────────────────────────────
     if (sortBy) {
       results.sort((a, b) => {
-        const aVal = a[sortBy];
-        const bVal = b[sortBy];
+        const aVal = a[sortBy] ?? "";
+        const bVal = b[sortBy] ?? "";
 
-        // ISO date strings sort correctly as plain strings, but using localeCompare
-        // for names/companies handles accented characters correctly.
-        const comparison =
-          typeof aVal === "string" && typeof bVal === "string"
-            ? aVal.localeCompare(bVal)
-            : 0;
+        let comparison = 0;
+        if (sortBy === "lastContactDate" || sortBy === "createdAt") {
+          const aTime = new Date(aVal).getTime();
+          const bTime = new Date(bVal).getTime();
+          comparison = aTime - bTime;
+        } else if (typeof aVal === "string" && typeof bVal === "string") {
+          comparison = aVal.localeCompare(bVal);
+        }
 
         return sortDir === "desc" ? -comparison : comparison;
       });

@@ -5,16 +5,26 @@ import type { SavedFilter, FilterState } from "@/types";
 
 const STORAGE_KEY = "crm:saved-filters";
 
+export const DEFAULT_SAVED_FILTERS: SavedFilter[] = [
+  { id: "saved-1", name: "Active Customers", filters: { status: ["active"] }, createdAt: "" },
+  { id: "saved-2", name: "Recent Contacts", filters: { dateFrom: "2023-10-01" }, createdAt: "" },
+  { id: "saved-3", name: "Inactive Leads", filters: { status: ["inactive"] }, createdAt: "" },
+];
+
 function readFromStorage(): SavedFilter[] {
+  if (typeof window === "undefined") return DEFAULT_SAVED_FILTERS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (raw === null) {
+      // First visit: initialize storage with default filter presets
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SAVED_FILTERS));
+      return DEFAULT_SAVED_FILTERS;
+    }
     const parsed: unknown = JSON.parse(raw);
-    // Guard against corrupt storage — must be an array
-    if (!Array.isArray(parsed)) return [];
+    if (!Array.isArray(parsed)) return DEFAULT_SAVED_FILTERS;
     return parsed as SavedFilter[];
   } catch {
-    return [];
+    return DEFAULT_SAVED_FILTERS;
   }
 }
 
@@ -60,9 +70,6 @@ export function useSavedFilters(): UseSavedFiltersReturn {
     [persist]
   );
 
-  // Returns the stored FilterState so the caller (useFilters) can apply it.
-  // Intentionally pure — does not mutate URL state itself; that is the
-  // responsibility of the component that calls useFilters.setters.
   const applyFilter = useCallback((saved: SavedFilter): FilterState => {
     return saved.filters;
   }, []);

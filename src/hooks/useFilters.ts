@@ -16,6 +16,8 @@ const filterParsers = {
   email: parseAsString.withDefault(""),
   phone: parseAsString.withDefault(""),
   page: parseAsString.withDefault("1"),
+  sortBy: parseAsString.withDefault(""),
+  sortDir: parseAsString.withDefault(""),
 };
 
 export interface UseFiltersReturn {
@@ -30,6 +32,7 @@ export interface UseFiltersReturn {
   setEmail: (value: string) => void;
   setPhone: (value: string) => void;
   setPage: (value: number) => void;
+  setSort: (field: string | null, direction: string | null) => void;
   activeFilterCount: number;
   clearFilters: () => void;
 }
@@ -96,6 +99,13 @@ export function useFilters(): UseFiltersReturn {
     [setValues]
   );
 
+  const setSort = useCallback(
+    (field: string | null, direction: string | null) => {
+      setValues({ sortBy: field || null, sortDir: direction || null, page: "1" });
+    },
+    [setValues]
+  );
+
   const clearFilters = useCallback(() => {
     setValues({
       search: null,
@@ -106,10 +116,12 @@ export function useFilters(): UseFiltersReturn {
       email: null,
       phone: null,
       page: "1",
+      sortBy: null,
+      sortDir: null,
     });
   }, [setValues]);
 
-  // Count only the filter fields, not search or page
+  // Count only the filter fields, not search or page or sort
   const activeFilterCount =
     (state.status.length > 0 ? 1 : 0) +
     (state.company.length > 0 ? 1 : 0) +
@@ -140,6 +152,7 @@ export function useFilters(): UseFiltersReturn {
     setEmail,
     setPhone,
     setPage,
+    setSort,
     activeFilterCount,
     clearFilters,
   };

@@ -10,8 +10,8 @@ interface StatusFilterProps {
 }
 
 const OPTIONS: { value: CustomerStatus; label: string }[] = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
+  { value: "active", label: "Active Customer" },
+  { value: "inactive", label: "Inactive Customer" },
 ];
 
 export function StatusFilter({
@@ -27,17 +27,18 @@ export function StatusFilter({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {OPTIONS.map((opt) => (
         <div key={opt.value} className="flex items-center gap-2.5">
           <Checkbox
             id={`status-filter-${opt.value}`}
             checked={value.includes(opt.value)}
             onCheckedChange={() => toggle(opt.value)}
+            className="size-4 rounded border-muted-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
           />
           <Label
             htmlFor={`status-filter-${opt.value}`}
-            className="cursor-pointer text-sm font-normal"
+            className="cursor-pointer text-sm font-normal text-foreground/90 select-none"
           >
             {opt.label}
           </Label>

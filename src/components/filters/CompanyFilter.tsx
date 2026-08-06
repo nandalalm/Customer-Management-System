@@ -10,8 +10,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-// All company names derived from the 50-record seed data
 const ALL_COMPANIES = [
+  "Acme Corp",
+  "Innovatech",
+  "Globex",
   "Apex Systems",
   "Arclight Dev",
   "Axiom Data",
@@ -24,16 +26,11 @@ const ALL_COMPANIES = [
   "Ironclad Security",
   "Lunar Logic",
   "NovaEdge",
-  "PeakFlow Tech",
   "Pulse Analytics",
-  "QuantumReach",
-  "Silverline SaaS",
   "Stratosphere Inc",
   "SwiftCurrent",
   "TechVault",
-  "Tidal Software",
   "Vortex Labs",
-  "Zenith Cloud",
 ];
 
 interface CompanyFilterProps {
@@ -79,41 +76,51 @@ export function CompanyFilter({
     }
   }
 
-  function clearAll(): void {
-    onChange([]);
+  function removeCompany(company: string, e: React.MouseEvent): void {
+    e.stopPropagation();
+    onChange(value.filter((c) => c !== company));
   }
-
-  const label =
-    value.length === 0
-      ? "Any company"
-      : value.length === 1
-        ? value[0]
-        : `${value.length} selected`;
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      {/*
-        PopoverTrigger is a Base UI component that renders a native <button>.
-        It does not support asChild — we style it directly with className.
-      */}
       <PopoverTrigger
         id="company-filter-trigger"
         aria-expanded={open}
-        className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        render={<div />}
+        nativeButton={false}
+        className="flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card/60 px-3 py-2 text-sm shadow-xs transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer"
       >
-        <span className="truncate">{label}</span>
-        <div className="flex items-center gap-1 shrink-0">
-          {value.length > 0 && (
-            <Badge variant="secondary" className="rounded-full px-1.5 py-0 text-xs">
-              {value.length}
+        {value.length === 0 ? (
+          <span className="text-muted-foreground text-xs">Add...</span>
+        ) : (
+          value.map((company) => (
+            <Badge
+              key={company}
+              variant="secondary"
+              className="flex items-center gap-1 rounded-md bg-secondary/80 px-2 py-0.5 text-xs font-normal text-foreground border border-border/50"
+            >
+              {company}
+              <button
+                type="button"
+                onClick={(e) => removeCompany(company, e)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <XIcon className="size-3" />
+              </button>
             </Badge>
-          )}
-          <ChevronDownIcon className="size-4 text-muted-foreground" />
+          ))
+        )}
+
+        <div className="ml-auto flex items-center shrink-0">
+          <ChevronDownIcon
+            className={`size-4 text-muted-foreground transition-transform duration-200 ${
+              open ? "rotate-180" : ""
+            }`}
+          />
         </div>
       </PopoverTrigger>
 
       <PopoverContent className="w-64 p-0" align="start">
-        {/* Search input */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-2">
           <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
           <Input
@@ -136,7 +143,6 @@ export function CompanyFilter({
           )}
         </div>
 
-        {/* Company list */}
         <div className="max-h-56 overflow-y-auto py-1">
           {filtered.length === 0 ? (
             <p className="px-3 py-4 text-center text-sm text-muted-foreground">
@@ -168,20 +174,6 @@ export function CompanyFilter({
             })
           )}
         </div>
-
-        {/* Footer */}
-        {value.length > 0 && (
-          <div className="border-t border-border px-3 py-2">
-            <button
-              type="button"
-              id="company-filter-clear"
-              onClick={clearAll}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Clear selection
-            </button>
-          </div>
-        )}
       </PopoverContent>
     </Popover>
   );

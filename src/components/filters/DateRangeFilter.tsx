@@ -18,18 +18,19 @@ interface DateRangeFilterProps {
   onDateToChange: (value: string) => void;
 }
 
-function DatePicker({
+function DatePickerInput({
   id,
   label,
   value,
+  placeholder,
   onChange,
   disabled,
 }: {
   id: string;
   label: string;
   value: string;
+  placeholder: string;
   onChange: (value: string) => void;
-  // Prevents selecting dates outside the paired picker's selection
   disabled?: (date: Date) => boolean;
 }): React.JSX.Element {
   const [open, setOpen] = useState(false);
@@ -37,7 +38,6 @@ function DatePicker({
 
   function handleSelect(date: Date | undefined): void {
     if (date) {
-      // Store as YYYY-MM-DD (local date string, no timezone shift)
       const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       onChange(iso);
     } else {
@@ -47,32 +47,26 @@ function DatePicker({
   }
 
   return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs text-muted-foreground">
+    <div className="flex-1 space-y-1">
+      <Label htmlFor={id} className="text-xs text-muted-foreground font-normal">
         {label}
       </Label>
-      <div className="flex items-center gap-1">
+      <div className="relative flex items-center">
         <Popover open={open} onOpenChange={setOpen}>
-          {/*
-            PopoverTrigger is Base UI — it renders a native <button> with no
-            asChild support. We style it inline as a button-like affordance.
-          */}
           <PopoverTrigger
             id={id}
-            className="flex flex-1 items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex w-full items-center gap-2 rounded-md border border-border bg-card/60 px-2.5 py-1.5 text-xs shadow-xs transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <CalendarIcon className="size-3.5 shrink-0 text-muted-foreground" />
             {selected ? (
-              <span>{format(selected, "MMM d, yyyy")}</span>
+              <span className="truncate text-foreground font-medium">
+                {format(selected, "yyyy-MM-dd")}
+              </span>
             ) : (
-              <span className="text-muted-foreground">Pick a date</span>
+              <span className="truncate text-muted-foreground">{placeholder}</span>
             )}
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            {/*
-              react-day-picker v9 removed initialFocus — focus is now managed
-              automatically via the modifiers.focused effect in CalendarDayButton.
-            */}
             <Calendar
               mode="single"
               selected={selected}
@@ -87,9 +81,9 @@ function DatePicker({
             type="button"
             aria-label={`Clear ${label.toLowerCase()}`}
             onClick={() => onChange("")}
-            className="rounded p-1 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-2 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <XIcon className="size-3.5" />
+            <XIcon className="size-3" />
           </button>
         )}
       </div>
@@ -104,21 +98,21 @@ export function DateRangeFilter({
   onDateToChange,
 }: DateRangeFilterProps): React.JSX.Element {
   return (
-    <div className="space-y-3">
-      <DatePicker
+    <div className="flex items-center gap-2">
+      <DatePickerInput
         id="date-filter-from"
         label="From"
+        placeholder="2023-10-DD"
         value={dateFrom}
         onChange={onDateFromChange}
-        // Prevent "from" from being set after the current "to"
         disabled={dateTo ? (date) => date > new Date(dateTo) : undefined}
       />
-      <DatePicker
+      <DatePickerInput
         id="date-filter-to"
         label="To"
+        placeholder="2023-12-31"
         value={dateTo}
         onChange={onDateToChange}
-        // Prevent "to" from being set before the current "from"
         disabled={dateFrom ? (date) => date < new Date(dateFrom) : undefined}
       />
     </div>

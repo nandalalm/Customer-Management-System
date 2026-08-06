@@ -14,11 +14,12 @@ interface TemplatePreset {
     setStatus: (status: CustomerStatus[]) => void;
     setDateFrom: (dateFrom: string) => void;
     setDateTo: (dateTo: string) => void;
+    setSort: (field: string | null, direction: string | null) => void;
   }) => void;
 }
 
 export function FilterTemplates(): React.JSX.Element {
-  const { clearFilters, setStatus, setDateFrom, setDateTo } = useFilters();
+  const { clearFilters, setStatus, setDateFrom, setDateTo, setSort } = useFilters();
 
   const presets: TemplatePreset[] = [
     {
@@ -36,6 +37,7 @@ export function FilterTemplates(): React.JSX.Element {
         setters.clearFilters();
         const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
         setters.setDateFrom(thirtyDaysAgo);
+        setters.setSort("lastContactDate", "desc");
       },
     },
     {
@@ -63,7 +65,7 @@ export function FilterTemplates(): React.JSX.Element {
             size="sm"
             className="h-7 text-xs font-normal"
             onClick={() =>
-              preset.apply({ clearFilters, setStatus, setDateFrom, setDateTo })
+              preset.apply({ clearFilters, setStatus, setDateFrom, setDateTo, setSort })
             }
           >
             {preset.name}
