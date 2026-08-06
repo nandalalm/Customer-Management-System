@@ -1,18 +1,58 @@
 import { z } from "zod";
 
 export const customerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  name: z
+    .string()
+    .transform((val) => val.trim())
+    .pipe(
+      z
+        .string()
+        .min(1, "Name cannot be empty")
+        .min(4, "Name must be at least 4 characters")
+    ),
+  email: z
+    .string()
+    .transform((val) => val.trim())
+    .pipe(
+      z
+        .string()
+        .min(1, "Email cannot be empty")
+        .email("Enter a valid email address")
+    ),
   phone: z
     .string()
-    .regex(
-      /^\+?[\d\s\-().]{7,20}$/,
-      "Invalid phone format"
+    .transform((val) => val.trim())
+    .pipe(
+      z
+        .string()
+        .min(1, "Phone number cannot be empty")
+        .regex(/^\+91 [6-9]\d{9}$/, "Enter a valid 10-digit phone number")
     ),
-  company: z.string().min(1, "Company is required"),
-  status: z.enum(["active", "inactive"]),
-  notes: z.string().optional(),
-  lastContactDate: z.string().optional(),
+  company: z
+    .string()
+    .transform((val) => val.trim())
+    .pipe(
+      z
+        .string()
+        .min(1, "Company cannot be empty")
+        .min(3, "Company must be at least 3 characters")
+    ),
+  status: z
+    .string()
+    .transform((val) => val.trim())
+    .pipe(
+      z.enum(["active", "inactive"], {
+        message: "Status cannot be empty",
+      })
+    ),
+  notes: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val.trim() : "")),
+  lastContactDate: z
+    .string()
+    .transform((val) => val.trim())
+    .pipe(z.string().min(1, "Date cannot be empty")),
 });
 
 export type CustomerSchema = z.infer<typeof customerSchema>;

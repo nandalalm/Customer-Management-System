@@ -85,14 +85,16 @@ export function CustomerTable({
   const [page] = useQueryState("page", parseAsInteger.withDefault(1));
   const [pageSize] = useQueryState("pageSize", parseAsInteger.withDefault(10));
 
+  const effectiveSortBy = sortBy || "lastContactDate";
+  const effectiveSortDir = sortDir || "desc";
+
   // Build params — spread filters and pagination/sorting
   const params: CustomerQueryParams = {
     ...filters,
     page,
     pageSize,
-    ...(sortBy
-      ? { field: sortBy as keyof Customer, direction: (sortDir ?? "asc") as SortDirection }
-      : {}),
+    field: effectiveSortBy as keyof Customer,
+    direction: effectiveSortDir as SortDirection,
   };
 
   const { data, isLoading, isError, refetch } = useCustomers(params);
@@ -138,18 +140,15 @@ export function CustomerTable({
   }
 
   async function handleSort(field: SortField): Promise<void> {
-    if (sortBy !== field) {
-      // New column — always start ascending
+    if (effectiveSortBy !== field) {
       await setSortBy(field);
-      await setSortDir("asc");
+      await setSortDir(field === "lastContactDate" ? "desc" : "asc");
       return;
     }
-    // Same column: asc → desc → unsorted
-    if (sortDir === "asc") {
+    if (effectiveSortDir === "asc") {
       await setSortDir("desc");
     } else {
-      await setSortBy(null);
-      await setSortDir(null);
+      await setSortDir("asc");
     }
   }
 
@@ -217,8 +216,8 @@ export function CustomerTable({
                       {col.label}
                       <SortIcon
                         field={col.key}
-                        activeField={sortBy}
-                        direction={sortDir}
+                        activeField={effectiveSortBy}
+                        direction={effectiveSortDir}
                       />
                     </button>
                   </th>

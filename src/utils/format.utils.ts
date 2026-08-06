@@ -1,20 +1,28 @@
 import { format, parseISO } from "date-fns";
 
 export function formatDate(iso: string): string {
-  return format(parseISO(iso), "MMM d, yyyy");
+  if (!iso) return "—";
+  try {
+    return format(parseISO(iso), "MMM d, yyyy");
+  } catch {
+    return iso;
+  }
 }
 
 export function formatPhone(phone: string): string {
+  if (!phone) return "—";
   const digits = phone.replace(/\D/g, "");
 
+  // If 12 digits starting with 91 (e.g. 919876543210)
+  if (digits.length === 12 && digits.startsWith("91")) {
+    const num = digits.slice(2);
+    return `+91 ${num.slice(0, 5)} ${num.slice(5)}`;
+  }
+
+  // If 10 digits (e.g. 9876543210)
   if (digits.length === 10) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
   }
 
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
-  }
-
-  // Return original if it doesn't match a known pattern
   return phone;
 }

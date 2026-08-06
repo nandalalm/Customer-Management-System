@@ -23,8 +23,8 @@ export async function GET(
     const dateTo = searchParams.get("dateTo");
     const email = searchParams.get("email")?.toLowerCase() ?? "";
     const phone = searchParams.get("phone") ?? "";
-    const sortBy = (searchParams.get("sortBy") || searchParams.get("field")) as keyof Customer | null;
-    const sortDir = searchParams.get("sortDir") || searchParams.get("direction") || "asc";
+    const sortBy = (searchParams.get("sortBy") || searchParams.get("field") || "lastContactDate") as keyof Customer;
+    const sortDir = searchParams.get("sortDir") || searchParams.get("direction") || "desc";
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const pageSize = Math.min(
       100,

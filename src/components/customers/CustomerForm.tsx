@@ -32,6 +32,23 @@ interface CustomerFormProps {
   onSuccess: () => void;
 }
 
+function getRaw10Digits(phoneValue?: string): string {
+  if (!phoneValue) return "";
+  let cleaned = phoneValue.trim();
+  if (cleaned.startsWith("+91")) {
+    cleaned = cleaned.slice(3).trim();
+  } else if (cleaned.startsWith("91") && cleaned.length > 10) {
+    cleaned = cleaned.slice(2).trim();
+  }
+  return cleaned.replace(/\D/g, "").slice(0, 10);
+}
+
+function formatInitialPhone(phone?: string): string {
+  if (!phone) return "";
+  const digits = getRaw10Digits(phone);
+  return digits ? `+91 ${digits}` : "";
+}
+
 export function CustomerForm({
   customer,
   onSuccess,
@@ -44,12 +61,13 @@ export function CustomerForm({
 
   const form = useForm<CustomerSchema>({
     resolver: zodResolver(customerSchema),
+    mode: "onChange",
     defaultValues: {
       name: customer?.name ?? "",
       email: customer?.email ?? "",
-      phone: customer?.phone ?? "",
+      phone: formatInitialPhone(customer?.phone),
       company: customer?.company ?? "",
-      status: customer?.status ?? "active",
+      status: (customer?.status ?? "") as any,
       notes: customer?.notes ?? "",
       lastContactDate: customer?.lastContactDate
         ? customer.lastContactDate.split("T")[0]
@@ -62,9 +80,9 @@ export function CustomerForm({
     form.reset({
       name: customer?.name ?? "",
       email: customer?.email ?? "",
-      phone: customer?.phone ?? "",
+      phone: formatInitialPhone(customer?.phone),
       company: customer?.company ?? "",
-      status: customer?.status ?? "active",
+      status: (customer?.status ?? "") as any,
       notes: customer?.notes ?? "",
       lastContactDate: customer?.lastContactDate
         ? customer.lastContactDate.split("T")[0]
@@ -75,10 +93,7 @@ export function CustomerForm({
   function onSubmit(values: CustomerSchema): void {
     const payload = {
       ...values,
-      // Store date as ISO string if provided; keep optional field absent if empty
-      lastContactDate: values.lastContactDate
-        ? new Date(values.lastContactDate).toISOString()
-        : undefined,
+      lastContactDate: new Date(values.lastContactDate).toISOString(),
     };
 
     if (isEdit) {
@@ -143,20 +158,37 @@ export function CustomerForm({
           <FormField
             control={form.control}
             name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <Input
-                    id="customer-form-phone"
-                    type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              // Extract raw 10 digits to render inside input
+              const rawDigits = getRaw10Digits(field.value);
+
+              return (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <div className="relative flex items-center">
+                      <span className="inline-flex h-9 items-center rounded-l-md border border-r-0 border-border bg-muted/60 px-3 text-xs font-medium text-muted-foreground select-none shrink-0">
+                        🇮🇳 +91
+                      </span>
+                      <Input
+                        id="customer-form-phone"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="9876543210"
+                        maxLength={10}
+                        value={rawDigits}
+                        onChange={(e) => {
+                          const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          field.onChange(digitsOnly ? `+91 ${digitsOnly}` : "");
+                        }}
+                        className="h-9 rounded-l-none text-xs border-border bg-card/60"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           <FormField
