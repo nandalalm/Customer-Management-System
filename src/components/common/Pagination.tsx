@@ -22,28 +22,49 @@ function getPageRange(
   currentPage: number,
   totalPages: number
 ): (number | "ellipsis-start" | "ellipsis-end")[] {
-  if (totalPages <= 4) {
+  // If total pages is 8 or less, show all page numbers directly
+  if (totalPages <= 8) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
-  // Near start: 1, 2, 3, ..., totalPages
-  if (currentPage <= 3) {
-    return [1, 2, 3, "ellipsis-end", totalPages];
+  // Near start (Pages 1 & 2): show 1, 2, 3 ... (last 2 pages)
+  if (currentPage <= 2) {
+    return [1, 2, 3, "ellipsis-end", totalPages - 1, totalPages];
   }
 
-  // Near end: 1, ..., totalPages - 2, totalPages - 1, totalPages
-  if (currentPage >= totalPages - 2) {
-    return [1, "ellipsis-start", totalPages - 2, totalPages - 1, totalPages];
+  // At Page 3: show 1, 2, 3, 4 ... (last 2 pages) so page 4 is immediately clickable
+  if (currentPage === 3) {
+    return [1, 2, 3, 4, "ellipsis-end", totalPages - 1, totalPages];
   }
 
-  // In the middle: 1, ..., currentPage - 1, currentPage, currentPage + 1, ..., totalPages
+  // Near end (Last 2 pages): show (first 2 pages) ... (last 3 pages)
+  if (currentPage >= totalPages - 1) {
+    return [1, 2, "ellipsis-start", totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  // 3rd from last page: show (first 2 pages) ... (last 4 pages) so previous page is immediately clickable
+  if (currentPage === totalPages - 2) {
+    return [
+      1,
+      2,
+      "ellipsis-start",
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  }
+
+  // In the middle: show 1, 2 ... (currentPage - 1), currentPage, (currentPage + 1) ... (last 2 pages)
   return [
     1,
+    2,
     "ellipsis-start",
     currentPage - 1,
     currentPage,
     currentPage + 1,
     "ellipsis-end",
+    totalPages - 1,
     totalPages,
   ];
 }
