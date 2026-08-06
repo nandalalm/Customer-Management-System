@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#7c3aed" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#bgGrad)" />
+  <!-- Users / CRM Icon -->
+  <path d="M11 14a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm10 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" fill="#ffffff" opacity="0.9"/>
+  <path d="M11 16.5c-3.2 0-6 1.6-6 3.8V22h12v-1.7c0-2.2-2.8-3.8-6-3.8zm10 1.2c-.6 0-1.2.1-1.8.3 1.1.9 1.8 2.1 1.8 3.5V22H27v-1.4c0-1.8-2.3-3.1-6-3.1z" fill="#ffffff" opacity="0.95"/>
+</svg>
