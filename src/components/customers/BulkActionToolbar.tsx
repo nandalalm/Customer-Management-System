@@ -34,39 +34,42 @@ export function BulkActionToolbar({
       <div
         role="toolbar"
         aria-label="Bulk actions"
-        className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-2 text-sm"
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-primary/20 bg-muted/60 p-3 text-sm shadow-xs transition-all animate-in fade-in slide-in-from-top-1 duration-200"
       >
         {/* Selection count + clear */}
-        <span className="font-medium text-foreground">
-          {count} selected
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+            {count} selected
+          </span>
 
-        <button
-          type="button"
-          id="bulk-clear-selection"
-          onClick={onClearSelection}
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Clear selection"
-        >
-          <XIcon className="size-3.5" />
-          <span className="text-xs">Clear</span>
-        </button>
+          <button
+            type="button"
+            id="bulk-clear-selection"
+            onClick={onClearSelection}
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="Clear selection"
+          >
+            <XIcon className="size-3.5" />
+            <span>Clear</span>
+          </button>
+        </div>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        {/* Action buttons */}
+        <div className="grid grid-cols-2 min-[540px]:grid-cols-4 sm:flex sm:items-center gap-2">
           <Button
             id="bulk-set-active"
             variant="outline"
             size="sm"
             disabled={isPending}
             onClick={() => handleAction("set-active")}
-            className="gap-1.5"
+            className="gap-1.5 w-full sm:w-auto justify-center"
           >
             {isPending ? (
               <LoaderCircleIcon className="size-3.5 animate-spin" />
             ) : (
               <CheckCircleIcon className="size-3.5 text-emerald-500" />
             )}
-            Set Active
+            <span>Set Active</span>
           </Button>
 
           <Button
@@ -75,14 +78,14 @@ export function BulkActionToolbar({
             size="sm"
             disabled={isPending}
             onClick={() => handleAction("set-inactive")}
-            className="gap-1.5"
+            className="gap-1.5 w-full sm:w-auto justify-center"
           >
             {isPending ? (
               <LoaderCircleIcon className="size-3.5 animate-spin" />
             ) : (
               <XCircleIcon className="size-3.5 text-muted-foreground" />
             )}
-            Set Inactive
+            <span>Set Inactive</span>
           </Button>
 
           <Button
@@ -91,10 +94,10 @@ export function BulkActionToolbar({
             size="sm"
             disabled={isPending}
             onClick={() => setBulkDeleteOpen(true)}
-            className="gap-1.5"
+            className="gap-1.5 w-full sm:w-auto justify-center"
           >
             <Trash2Icon className="size-3.5" />
-            Delete
+            <span>Delete</span>
           </Button>
 
           <Button
@@ -103,10 +106,10 @@ export function BulkActionToolbar({
             size="sm"
             disabled={isPending}
             onClick={onExportCSV}
-            className="gap-1.5"
+            className="gap-1.5 w-full sm:w-auto justify-center"
           >
             <DownloadIcon className="size-3.5" />
-            Export CSV
+            <span>Export CSV</span>
           </Button>
         </div>
       </div>

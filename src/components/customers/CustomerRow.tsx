@@ -1,6 +1,16 @@
 "use client";
 
-import { EyeIcon, PencilIcon, Trash2Icon, MoreHorizontalIcon, GripVerticalIcon } from "lucide-react";
+import {
+  EyeIcon,
+  PencilIcon,
+  Trash2Icon,
+  MoreHorizontalIcon,
+  GripVerticalIcon,
+  MailIcon,
+  PhoneIcon,
+  CalendarIcon,
+  Building2Icon,
+} from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +35,6 @@ interface CustomerRowProps {
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
   variant?: "row" | "card";
-  index?: number;
   /** Whether this row participates in sortable DnD */
   isDraggable?: boolean;
   /** Whether this row is the DragOverlay ghost — skips useSortable transform */
@@ -40,7 +49,6 @@ export function CustomerRow({
   onEdit,
   onDelete,
   variant = "row",
-  index,
   isDraggable = false,
   isDragOverlay = false,
 }: CustomerRowProps): React.JSX.Element {
@@ -90,18 +98,31 @@ export function CustomerRow({
         <MoreHorizontalIcon className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-36">
-        <DropdownMenuItem onClick={() => onView(customer)}>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            onView(customer);
+          }}
+        >
           <EyeIcon className="size-4" />
           View
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(customer)}>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(customer);
+          }}
+        >
           <PencilIcon className="size-4" />
           Edit
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => onDelete(customer)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(customer);
+          }}
         >
           <Trash2Icon className="size-4" />
           Delete
@@ -114,15 +135,16 @@ export function CustomerRow({
   if (variant === "card") {
     return (
       <div
-        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3"
+        className="group relative flex flex-col gap-3 rounded-xl border border-border bg-card p-3.5 sm:p-4 hover:border-primary/30 hover:bg-card/90 transition-all shadow-xs"
         onClick={() => onView(customer)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => e.key === "Enter" && onView(customer)}
         aria-label={`View ${customer.name}`}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+        {/* Header: Checkbox + Avatar + Name + Company + Status + Actions */}
+        <div className="flex items-start justify-between gap-2.5">
+          <div className="flex items-center gap-3 min-w-0">
             <Checkbox
               id={`select-mobile-${customer.id}`}
               checked={isSelected}
@@ -132,26 +154,46 @@ export function CustomerRow({
               }
               aria-label={`Select ${customer.name}`}
             />
-            <CustomerAvatar name={customer.name} index={index} size="sm" />
+            <CustomerAvatar name={customer.name} size="sm" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{customer.name}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {customer.company}
+              <h3 className="truncate text-sm font-semibold text-foreground tracking-tight">
+                {customer.name}
+              </h3>
+              <p className="truncate text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <Building2Icon className="size-3 text-muted-foreground/60 shrink-0" />
+                <span className="truncate">{customer.company}</span>
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+
+          <div
+            className="flex items-center gap-1.5 shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             {statusBadge}
             {actions}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-          <span className="truncate">{customer.email}</span>
-          <span className="truncate">{formatPhone(customer.phone)}</span>
-          <span className="col-span-2 text-right">
-            Last contact: {formatDate(customer.lastContactDate)}
-          </span>
+        {/* Divider */}
+        <div className="border-t border-border/50" />
+
+        {/* Details section */}
+        <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <MailIcon className="size-3.5 text-muted-foreground/70 shrink-0" />
+            <span className="truncate">{customer.email}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <PhoneIcon className="size-3.5 text-muted-foreground/70 shrink-0" />
+            <span>{formatPhone(customer.phone)}</span>
+          </div>
+
+          <div className="flex items-center justify-end gap-1.5 text-[11px] text-muted-foreground/80 pt-0.5">
+            <CalendarIcon className="size-3 text-muted-foreground/60 shrink-0" />
+            <span>Last contact: {formatDate(customer.lastContactDate)}</span>
+          </div>
         </div>
       </div>
     );
@@ -202,7 +244,7 @@ export function CustomerRow({
       {/* Name */}
       <td className="px-3 py-2.5">
         <div className="flex items-center gap-2.5">
-          <CustomerAvatar name={customer.name} index={index} size="sm" />
+          <CustomerAvatar name={customer.name} size="sm" />
           <span className="text-sm font-medium">{customer.name}</span>
         </div>
       </td>

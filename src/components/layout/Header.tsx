@@ -60,6 +60,7 @@ export function Header({ onAddCustomer }: HeaderProps): React.JSX.Element {
         <Input
           id="global-search-input"
           type="search"
+          autoComplete="off"
           placeholder="Search customers by name, email, company…"
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}

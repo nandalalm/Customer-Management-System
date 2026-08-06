@@ -195,6 +195,7 @@ function HomeContent(): React.JSX.Element {
         customerId={activeCustomerId}
         mode={drawerMode}
         onModeChange={setDrawerMode}
+        onDelete={handleDelete}
       />
       <DeleteConfirmDialog
         open={deleteDialogOpen}

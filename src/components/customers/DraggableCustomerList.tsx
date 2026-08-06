@@ -30,12 +30,11 @@ export function DraggableCustomerList({
       strategy={verticalListSortingStrategy}
     >
       <tbody>
-        {customers.map((customer, index) => (
+        {customers.map((customer) => (
           <CustomerRow
             key={customer.id}
             variant="row"
             customer={customer}
-            index={index}
             isSelected={selectedIds.has(customer.id)}
             onSelectChange={onSelectChange}
             onView={onView}

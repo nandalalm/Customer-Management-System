@@ -70,6 +70,43 @@ function SortIcon({
   return <ChevronDownIcon className="size-3.5 text-foreground" />;
 }
 
+const CUSTOM_ORDER_STORAGE_KEY = "customer_table_custom_order";
+
+function getCustomOrderIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_ORDER_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomOrderIds(ids: string[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CUSTOM_ORDER_STORAGE_KEY, JSON.stringify(ids));
+  } catch {
+    // Ignore storage quota or disabled localStorage errors
+  }
+}
+
+function applyStoredOrder(customers: Customer[]): Customer[] {
+  const customOrderIds = getCustomOrderIds();
+  if (customOrderIds.length === 0) return customers;
+
+  const orderMap = new Map<string, number>();
+  customOrderIds.forEach((id, idx) => orderMap.set(id, idx));
+
+  return [...customers].sort((a, b) => {
+    const indexA = orderMap.has(a.id) ? orderMap.get(a.id)! : Number.MAX_SAFE_INTEGER;
+    const indexB = orderMap.has(b.id) ? orderMap.get(b.id)! : Number.MAX_SAFE_INTEGER;
+    return indexA - indexB;
+  });
+}
+
 export function CustomerTable({
   selectedIds,
   onSelectChange,
@@ -101,13 +138,15 @@ export function CustomerTable({
 
   const queryCustomers = data?.data;
   const [prevQueryData, setPrevQueryData] = useState<Customer[] | undefined>(queryCustomers);
-  const [orderedCustomers, setOrderedCustomers] = useState<Customer[]>(queryCustomers ?? []);
+  const [orderedCustomers, setOrderedCustomers] = useState<Customer[]>(() =>
+    applyStoredOrder(queryCustomers ?? [])
+  );
   const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
 
   // Sync external query data changes (search, filter, pagination) into local order state
   if (queryCustomers !== prevQueryData && !activeCustomer) {
     setPrevQueryData(queryCustomers);
-    const next = queryCustomers ?? [];
+    const next = applyStoredOrder(queryCustomers ?? []);
     setOrderedCustomers(next);
     onCustomersChange?.(next);
   }
@@ -135,7 +174,19 @@ export function CustomerTable({
     setOrderedCustomers((prev) => {
       const oldIndex = prev.findIndex((c) => c.id === active.id);
       const newIndex = prev.findIndex((c) => c.id === over.id);
-      return arrayMove(prev, oldIndex, newIndex);
+      const reordered = arrayMove(prev, oldIndex, newIndex);
+
+      // Save reordered IDs to localStorage
+      const currentStoredIds = getCustomOrderIds();
+      const currentPageIds = new Set(prev.map((c) => c.id));
+      const reorderedPageIds = reordered.map((c) => c.id);
+
+      const nonPageStoredIds = currentStoredIds.filter((id) => !currentPageIds.has(id));
+      const updatedStoredIds = [...reorderedPageIds, ...nonPageStoredIds];
+
+      saveCustomOrderIds(updatedStoredIds);
+
+      return reordered;
     });
   }
 
@@ -176,8 +227,8 @@ export function CustomerTable({
 
   return (
     <div className="flex flex-col">
-      {/* ── Desktop table ─────────────────────────────────────────────────────── */}
-      <div className="hidden overflow-x-auto md:block">
+      {/* ── Desktop table (>= 1180px) ────────────────────────────────────────────── */}
+      <div className="hidden overflow-x-auto min-[1180px]:block">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -260,8 +311,8 @@ export function CustomerTable({
         </DndContext>
       </div>
 
-      {/* ── Mobile card list ──────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-2 p-3 md:hidden">
+      {/* ── Card list (< 1180px) ──────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-2 min-[1180px]:hidden">
         {orderedCustomers.map((customer) => (
           <CustomerRow
             key={`card-${customer.id}`}
