@@ -101,8 +101,8 @@ function applyStoredOrder(customers: Customer[]): Customer[] {
   customOrderIds.forEach((id, idx) => orderMap.set(id, idx));
 
   return [...customers].sort((a, b) => {
-    const indexA = orderMap.has(a.id) ? orderMap.get(a.id)! : Number.MAX_SAFE_INTEGER;
-    const indexB = orderMap.has(b.id) ? orderMap.get(b.id)! : Number.MAX_SAFE_INTEGER;
+    const indexA = orderMap.has(a.id) ? orderMap.get(a.id)! : -1;
+    const indexB = orderMap.has(b.id) ? orderMap.get(b.id)! : -1;
     return indexA - indexB;
   });
 }
