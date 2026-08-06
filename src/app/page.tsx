@@ -17,6 +17,7 @@ import { getCustomers } from "@/services/customer.service";
 import { useFilters } from "@/hooks/useFilters";
 import { formatDate } from "@/utils/format.utils";
 import type { Customer } from "@/types";
+import { toast } from "sonner";
 
 // ── CSV helpers ───────────────────────────────────────────────────────────────
 
@@ -114,12 +115,13 @@ function HomeContent(): React.JSX.Element {
 
   const handleExportCSV = useCallback(async (): Promise<void> => {
     try {
-      // Fetch all pages matching the current filters (no pagination limit)
-      const allData = await getCustomers({
-        ...filters,
-        page: 1,
-        pageSize: 10_000,
-      });
+      // If specific items selected, fetch all items to ensure selected IDs are found even if filtered out
+      const queryParams =
+        selectedIds.size > 0
+          ? { page: 1, pageSize: 10_000 }
+          : { ...filters, page: 1, pageSize: 10_000 };
+
+      const allData = await getCustomers(queryParams);
 
       // If some rows are selected, export only those; otherwise export all
       const rows =
@@ -127,14 +129,20 @@ function HomeContent(): React.JSX.Element {
           ? allData.data.filter((c) => selectedIds.has(c.id))
           : allData.data;
 
-      const timestamp = new Date()
-        .toISOString()
-        .slice(0, 10); // YYYY-MM-DD
+      if (rows.length === 0) {
+        toast.error("No customers available to export.");
+        return;
+      }
+
+      const timestamp = new Date().toISOString().slice(0, 10);
       const filename = `customers-export-${timestamp}.csv`;
 
       downloadCSV(buildCSV(rows), filename);
+      toast.success(
+        `Successfully exported ${rows.length} customer${rows.length !== 1 ? "s" : ""} to CSV.`
+      );
     } catch {
-      // Non-critical — user will see nothing downloaded; no toast to avoid noise
+      toast.error("Failed to export CSV. Please try again.");
     }
   }, [filters, selectedIds]);
 

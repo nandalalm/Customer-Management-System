@@ -9,6 +9,9 @@ import type {
   APIResponse,
 } from "@/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(
   request: NextRequest
 ): Promise<NextResponse<PaginatedResponse<Customer> | APIResponse<null>>> {
@@ -111,7 +114,10 @@ export async function GET(
       totalPages,
     };
 
-    return NextResponse.json(response, { status: 200 });
+    return NextResponse.json(response, {
+      status: 200,
+      headers: { "Cache-Control": "no-store, max-age=0, must-revalidate" },
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";

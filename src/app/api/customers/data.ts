@@ -1,6 +1,15 @@
 import { Customer, CustomerStatus } from "@/types";
 
-const customerStore = new Map<string, Customer>();
+const globalForCustomers = globalThis as unknown as {
+  __customerStore?: Map<string, Customer>;
+};
+
+const customerStore: Map<string, Customer> =
+  globalForCustomers.__customerStore ?? new Map<string, Customer>();
+
+if (!globalForCustomers.__customerStore) {
+  globalForCustomers.__customerStore = customerStore;
+}
 
 interface SeedEntry {
   name: string;
@@ -171,6 +180,8 @@ const seedData: SeedEntry[] = [
 ];
 
 function seedStore(): void {
+  if (customerStore.size > 0) return;
+
   // Use a fixed base date (2026-08-05) so dates are deterministic across serverless instances
   const baseTime = new Date("2026-08-05T12:00:00.000Z").getTime();
 

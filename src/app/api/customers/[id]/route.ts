@@ -4,6 +4,9 @@ import { getStore } from "../data";
 import { customerSchema } from "@/schemas/customer.schema";
 import type { Customer, APIResponse } from "@/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface RouteContext {
   params: Promise<{ id: string }>;
 }

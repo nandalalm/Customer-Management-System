@@ -75,3 +75,14 @@ export async function deleteCustomer(
   );
   return response.data;
 }
+
+export async function bulkCustomerAction(
+  action: "delete" | "set-active" | "set-inactive",
+  ids: string[]
+): Promise<APIResponse<{ count: number }>> {
+  const response = await axiosInstance.post<APIResponse<{ count: number }>>(
+    "/customers/bulk",
+    { action, ids }
+  );
+  return response.data;
+}

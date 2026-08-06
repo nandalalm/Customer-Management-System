@@ -35,10 +35,10 @@ export function Header({ onAddCustomer }: HeaderProps): React.JSX.Element {
 
   // Sync debounced search to URL via useFilters
   useEffect(() => {
-    if (debouncedSearch !== (search ?? "")) {
+    if (debouncedSearch === localSearch && debouncedSearch !== (search ?? "")) {
       setSearch(debouncedSearch);
     }
-  }, [debouncedSearch, search, setSearch]);
+  }, [debouncedSearch, localSearch, search, setSearch]);
 
   function toggleTheme(): void {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -59,23 +59,24 @@ export function Header({ onAddCustomer }: HeaderProps): React.JSX.Element {
         <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <Input
           id="global-search-input"
-          type="search"
+          type="text"
           autoComplete="off"
           placeholder="Search customers by name, email, company…"
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
-          className="h-9 w-full pl-9 pr-8 text-sm bg-muted/40 focus:bg-background transition-colors"
+          className="h-9 w-full pl-9 pr-8 text-sm bg-muted/40 focus:bg-background transition-colors [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-cancel-button]:appearance-none"
         />
         {localSearch && (
           <button
             type="button"
             id="clear-global-search"
             aria-label="Clear search"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
               setLocalSearch("");
               setSearch("");
             }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-2 top-1/2 z-10 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors rounded-sm cursor-pointer"
           >
             <XIcon className="size-3.5" />
           </button>
