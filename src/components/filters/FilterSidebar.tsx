@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { XIcon, SearchIcon, AtSignIcon } from "lucide-react";
+import { XIcon, AtSignIcon, PhoneIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusFilter } from "@/components/filters/StatusFilter";
 import { CompanyFilter } from "@/components/filters/CompanyFilter";
@@ -208,14 +208,15 @@ export function FilterSidebar({ onClose }: FilterSidebarProps): React.JSX.Elemen
         />
       </div>
 
-      {/* 6. Phone Number section */}
+      {/* 6. Phone Number Contains section */}
       <div className="space-y-1.5 pt-1">
-        <h3 className="text-sm font-semibold text-foreground">Phone Number</h3>
+        <h3 className="text-sm font-semibold text-foreground">Phone Number Contains</h3>
         <TextFilter
           id="phone-filter-input"
           placeholder="e.g. +91 9876543210"
           value={draft.phone}
-          icon={<SearchIcon className="size-3.5" />}
+          icon={<PhoneIcon className="size-3.5" />}
+          onlyNumbers
           onChange={(v) => setDraft((d) => ({ ...d, phone: v }))}
         />
       </div>

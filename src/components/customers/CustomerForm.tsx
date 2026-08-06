@@ -67,7 +67,7 @@ export function CustomerForm({
       email: customer?.email ?? "",
       phone: formatInitialPhone(customer?.phone),
       company: customer?.company ?? "",
-      status: (customer?.status ?? "") as any,
+      status: (customer?.status ?? "") as unknown as "active" | "inactive",
       notes: customer?.notes ?? "",
       lastContactDate: customer?.lastContactDate
         ? customer.lastContactDate.split("T")[0]
@@ -82,7 +82,7 @@ export function CustomerForm({
       email: customer?.email ?? "",
       phone: formatInitialPhone(customer?.phone),
       company: customer?.company ?? "",
-      status: (customer?.status ?? "") as any,
+      status: (customer?.status ?? "") as unknown as "active" | "inactive",
       notes: customer?.notes ?? "",
       lastContactDate: customer?.lastContactDate
         ? customer.lastContactDate.split("T")[0]
@@ -93,6 +93,7 @@ export function CustomerForm({
   function onSubmit(values: CustomerSchema): void {
     const payload = {
       ...values,
+      notes: values.notes ? values.notes.trim() : "",
       lastContactDate: new Date(values.lastContactDate).toISOString(),
     };
 
