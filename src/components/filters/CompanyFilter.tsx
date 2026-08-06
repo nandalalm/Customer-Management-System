@@ -11,9 +11,6 @@ import {
 } from "@/components/ui/popover";
 
 const ALL_COMPANIES = [
-  "Acme Corp",
-  "Innovatech",
-  "Globex",
   "Apex Systems",
   "Arclight Dev",
   "Axiom Data",
@@ -26,11 +23,16 @@ const ALL_COMPANIES = [
   "Ironclad Security",
   "Lunar Logic",
   "NovaEdge",
+  "PeakFlow Tech",
   "Pulse Analytics",
+  "QuantumReach",
+  "Silverline SaaS",
   "Stratosphere Inc",
   "SwiftCurrent",
   "TechVault",
+  "Tidal Software",
   "Vortex Labs",
+  "Zenith Cloud",
 ];
 
 interface CompanyFilterProps {

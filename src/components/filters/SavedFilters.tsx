@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   DndContext,
   PointerSensor,
@@ -19,7 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
-import { StarIcon, Trash2Icon, CheckIcon, GripVerticalIcon, XIcon } from "lucide-react";
+import { Trash2Icon, CheckIcon, GripVerticalIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -202,13 +202,22 @@ function SortableFilterRow({
   );
 }
 
+const emptySubscribe = () => () => {};
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
+
 // ── SavedFilters container ────────────────────────────────────────────────────
 
 interface SavedFiltersProps {
   savedFilters: SavedFilter[];
   activeSavedFilterId: string | null;
   onApply: (saved: SavedFilter) => void;
-  onDelete: (id: string) => void;
+  onDelete: (saved: SavedFilter) => void;
   onReorder: (orderedIds: string[]) => void;
   onDeactivate: () => void;
 }
@@ -237,15 +246,14 @@ export function SavedFilters({
 
   function handleConfirmDelete(): void {
     if (filterToDelete) {
-      onDelete(filterToDelete.id);
+      onDelete(filterToDelete);
     }
     setDeleteDialogOpen(false);
     setFilterToDelete(null);
   }
 
   // After client mount, switch from SSR-safe static list to full DnD tree.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const mounted = useMounted();
 
   function handleDragEnd(event: DragEndEvent): void {
     const { active, over } = event;

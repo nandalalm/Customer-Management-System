@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { XIcon, SearchIcon, AtSignIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusFilter } from "@/components/filters/StatusFilter";
@@ -54,18 +54,19 @@ export function FilterSidebar({ onClose }: FilterSidebarProps): React.JSX.Elemen
   // and SavedFilters share the same state instance and stay in sync.
   const { savedFilters, saveFilter, deleteFilter, reorderFilters } = useSavedFilters();
 
-  // Local draft — inputs write here; URL is only updated on Apply
-  const [draft, setDraft] = useState<DraftFilters>(() => filtersToDraft(filters));
-
   // Which saved filter preset is currently active (applied)
   const [activeSavedFilterId, setActiveSavedFilterId] = useState<string | null>(null);
 
-  // Keep draft in sync when URL params change externally
-  // (e.g. browser back/forward, or saved filter applied from elsewhere)
-  useEffect(() => {
+  // Local draft — inputs write here; URL is only updated on Apply
+  const [draft, setDraft] = useState<DraftFilters>(() => filtersToDraft(filters));
+  const [prevFiltersJson, setPrevFiltersJson] = useState(() => JSON.stringify(filters));
+
+  // Sync draft during render when external filters state changes (e.g. back/forward nav)
+  const currentFiltersJson = JSON.stringify(filters);
+  if (currentFiltersJson !== prevFiltersJson) {
+    setPrevFiltersJson(currentFiltersJson);
     setDraft(filtersToDraft(filters));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(filters)]);
+  }
 
   const draftActiveCount =
     (draft.status.length > 0 ? 1 : 0) +
@@ -212,7 +213,7 @@ export function FilterSidebar({ onClose }: FilterSidebarProps): React.JSX.Elemen
         <h3 className="text-sm font-semibold text-foreground">Phone Number</h3>
         <TextFilter
           id="phone-filter-input"
-          placeholder="(555) 123-4567"
+          placeholder="e.g. +91 9876543210"
           value={draft.phone}
           icon={<SearchIcon className="size-3.5" />}
           onChange={(v) => setDraft((d) => ({ ...d, phone: v }))}
@@ -258,7 +259,7 @@ export function FilterSidebar({ onClose }: FilterSidebarProps): React.JSX.Elemen
         savedFilters={savedFilters}
         activeSavedFilterId={activeSavedFilterId}
         onApply={handleApplySavedFilter}
-        onDelete={deleteFilter}
+        onDelete={(saved) => deleteFilter(saved.id)}
         onReorder={reorderFilters}
         onDeactivate={handleClearAll}
       />

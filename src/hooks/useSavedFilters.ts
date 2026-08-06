@@ -58,7 +58,7 @@ export function useSavedFilters(): UseSavedFiltersReturn {
         filters: state,
         createdAt: new Date().toISOString(),
       };
-      persist([...readFromStorage(), entry]);
+      persist([entry, ...readFromStorage()]);
     },
     [persist]
   );

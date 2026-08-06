@@ -16,8 +16,8 @@ const filterParsers = {
   email: parseAsString.withDefault(""),
   phone: parseAsString.withDefault(""),
   page: parseAsString.withDefault("1"),
-  sortBy: parseAsString.withDefault(""),
-  sortDir: parseAsString.withDefault(""),
+  sortBy: parseAsString.withDefault("lastContactDate"),
+  sortDir: parseAsString.withDefault("desc"),
 };
 
 export interface UseFiltersReturn {
@@ -116,8 +116,8 @@ export function useFilters(): UseFiltersReturn {
       email: null,
       phone: null,
       page: "1",
-      sortBy: null,
-      sortDir: null,
+      sortBy: "lastContactDate",
+      sortDir: "desc",
     });
   }, [setValues]);
 
