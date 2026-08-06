@@ -9,7 +9,11 @@ import {
   PlusIcon,
   SearchIcon,
   XIcon,
+  RotateCcwIcon,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { resetDemoCustomers } from "@/services/customer.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFilters } from "@/hooks/useFilters";
@@ -20,12 +24,20 @@ interface HeaderProps {
 }
 
 export function Header({ onAddCustomer }: HeaderProps): React.JSX.Element {
+  const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
   const { search, setSearch } = useFilters();
 
   const [localSearch, setLocalSearch] = useState(search ?? "");
   const [prevSearch, setPrevSearch] = useState(search);
   const debouncedSearch = useDebounce(localSearch, 300);
+
+  function handleResetDemo(): void {
+    resetDemoCustomers();
+    void queryClient.invalidateQueries({ queryKey: ["customers"] });
+    void queryClient.invalidateQueries({ queryKey: ["customer-stats"] });
+    toast.success("Demo data reset back to initial 150 customers.");
+  }
 
   // Sync external search changes (e.g. clear filters button) during render
   if (search !== prevSearch) {
@@ -96,7 +108,19 @@ export function Header({ onAddCustomer }: HeaderProps): React.JSX.Element {
           <MoonIcon className="absolute size-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
         </Button>
 
-        <Button id="add-customer-btn" onClick={onAddCustomer} size="sm">
+        <Button
+          id="reset-demo-btn"
+          variant="outline"
+          size="sm"
+          title="Reset demo data back to 150 default customers"
+          onClick={handleResetDemo}
+          className="hidden sm:inline-flex gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+        >
+          <RotateCcwIcon className="size-3.5" />
+          <span>Reset Data</span>
+        </Button>
+
+        <Button id="add-customer-btn" onClick={onAddCustomer} size="sm" className="cursor-pointer">
           <PlusIcon className="size-4" />
           <span className="hidden sm:inline">Add Customer</span>
         </Button>

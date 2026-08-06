@@ -62,7 +62,10 @@ export interface PaginationState {
 export interface CustomerQueryParams
   extends FilterState,
     Partial<SortState>,
-    PaginationState {}
+    PaginationState {
+  sortBy?: string;
+  sortDir?: string;
+}
 
 // ── API Response Shapes ──────────────────────────────────────────────────────
 
