@@ -28,7 +28,13 @@ export const customerSchema = z.object({
   lastContactDate: z
     .string()
     .trim()
-    .min(1, "Date cannot be empty"),
+    .min(1, "Date cannot be empty")
+    .refine((val) => {
+      const dateVal = new Date(val);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      return dateVal <= today;
+    }, "Last contact date cannot be in the future"),
 });
 
 export type CustomerSchema = z.infer<typeof customerSchema>;

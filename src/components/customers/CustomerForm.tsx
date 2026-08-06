@@ -59,6 +59,8 @@ export function CustomerForm({
   const { mutate: updateCustomer, isPending: isUpdating } = useUpdateCustomer();
   const isPending = isCreating || isUpdating;
 
+  const todayISO = new Date().toISOString().split("T")[0];
+
   const form = useForm<CustomerSchema>({
     resolver: zodResolver(customerSchema),
     mode: "onChange",
@@ -71,7 +73,7 @@ export function CustomerForm({
       notes: customer?.notes ?? "",
       lastContactDate: customer?.lastContactDate
         ? customer.lastContactDate.split("T")[0]
-        : "",
+        : todayISO,
     },
   });
 
@@ -86,9 +88,9 @@ export function CustomerForm({
       notes: customer?.notes ?? "",
       lastContactDate: customer?.lastContactDate
         ? customer.lastContactDate.split("T")[0]
-        : "",
+        : todayISO,
     });
-  }, [customer, form]);
+  }, [customer, form, todayISO]);
 
   function onSubmit(values: CustomerSchema): void {
     const payload = {
@@ -252,6 +254,7 @@ export function CustomerForm({
                   <Input
                     id="customer-form-last-contact"
                     type="date"
+                    max={todayISO}
                     autoComplete="off"
                     {...field}
                     value={field.value ?? ""}

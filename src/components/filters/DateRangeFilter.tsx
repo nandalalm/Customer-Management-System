@@ -97,6 +97,9 @@ export function DateRangeFilter({
   onDateFromChange,
   onDateToChange,
 }: DateRangeFilterProps): React.JSX.Element {
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
   return (
     <div className="flex items-center gap-2">
       <DatePickerInput
@@ -105,7 +108,11 @@ export function DateRangeFilter({
         placeholder="dd-mm-yyyy"
         value={dateFrom}
         onChange={onDateFromChange}
-        disabled={dateTo ? (date) => date > new Date(dateTo) : undefined}
+        disabled={(date) => {
+          if (date > todayEnd) return true;
+          if (dateTo) return date > new Date(dateTo);
+          return false;
+        }}
       />
       <DatePickerInput
         id="date-filter-to"
@@ -113,7 +120,11 @@ export function DateRangeFilter({
         placeholder="dd-mm-yyyy"
         value={dateTo}
         onChange={onDateToChange}
-        disabled={dateFrom ? (date) => date < new Date(dateFrom) : undefined}
+        disabled={(date) => {
+          if (date > todayEnd) return true;
+          if (dateFrom) return date < new Date(dateFrom);
+          return false;
+        }}
       />
     </div>
   );

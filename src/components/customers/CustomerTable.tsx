@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { parseAsString, useQueryState, parseAsInteger } from "nuqs";
 import { ChevronUpIcon, ChevronDownIcon, ChevronsUpDownIcon } from "lucide-react";
 import {
@@ -37,8 +37,6 @@ interface CustomerTableProps {
   onView: (customer: Customer) => void;
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
-  /** Notifies parent whenever the visible ordered customer list changes */
-  onCustomersChange?: (customers: Customer[]) => void;
 }
 
 type SortField = "name" | "email" | "phone" | "company" | "status" | "lastContactDate";
@@ -114,7 +112,6 @@ export function CustomerTable({
   onView,
   onEdit,
   onDelete,
-  onCustomersChange,
 }: CustomerTableProps): React.JSX.Element {
   const { filters } = useFilters();
   const [sortBy, setSortBy] = useQueryState("sortBy", parseAsString);
@@ -137,19 +134,16 @@ export function CustomerTable({
   const { data, isLoading, isError, refetch } = useCustomers(params);
 
   const queryCustomers = data?.data;
-  const [prevQueryData, setPrevQueryData] = useState<Customer[] | undefined>(queryCustomers);
-  const [orderedCustomers, setOrderedCustomers] = useState<Customer[]>(() =>
-    applyStoredOrder(queryCustomers ?? [])
-  );
+  const [customOrderVersion, setCustomOrderVersion] = useState<number>(0);
   const [activeCustomer, setActiveCustomer] = useState<Customer | null>(null);
 
-  // Sync external query data changes (search, filter, pagination) into local order state
-  if (queryCustomers !== prevQueryData && !activeCustomer) {
-    setPrevQueryData(queryCustomers);
-    const next = applyStoredOrder(queryCustomers ?? []);
-    setOrderedCustomers(next);
-    onCustomersChange?.(next);
-  }
+  // Compute ordered customers directly during render using useMemo (no useEffect setState cascade)
+  const orderedCustomers = useMemo(() => {
+    if (!queryCustomers) return [];
+    return applyStoredOrder(queryCustomers);
+    // customOrderVersion is included to recalculate order whenever drag-and-drop finishes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryCustomers, customOrderVersion]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -171,23 +165,20 @@ export function CustomerTable({
 
     if (!over || active.id === over.id) return;
 
-    setOrderedCustomers((prev) => {
-      const oldIndex = prev.findIndex((c) => c.id === active.id);
-      const newIndex = prev.findIndex((c) => c.id === over.id);
-      const reordered = arrayMove(prev, oldIndex, newIndex);
+    const oldIndex = orderedCustomers.findIndex((c) => c.id === active.id);
+    const newIndex = orderedCustomers.findIndex((c) => c.id === over.id);
+    const reordered = arrayMove(orderedCustomers, oldIndex, newIndex);
 
-      // Save reordered IDs to localStorage
-      const currentStoredIds = getCustomOrderIds();
-      const currentPageIds = new Set(prev.map((c) => c.id));
-      const reorderedPageIds = reordered.map((c) => c.id);
+    // Save reordered IDs to localStorage
+    const currentStoredIds = getCustomOrderIds();
+    const currentPageIds = new Set(orderedCustomers.map((c) => c.id));
+    const reorderedPageIds = reordered.map((c) => c.id);
 
-      const nonPageStoredIds = currentStoredIds.filter((id) => !currentPageIds.has(id));
-      const updatedStoredIds = [...reorderedPageIds, ...nonPageStoredIds];
+    const nonPageStoredIds = currentStoredIds.filter((id) => !currentPageIds.has(id));
+    const updatedStoredIds = [...reorderedPageIds, ...nonPageStoredIds];
 
-      saveCustomOrderIds(updatedStoredIds);
-
-      return reordered;
-    });
+    saveCustomOrderIds(updatedStoredIds);
+    setCustomOrderVersion((v) => v + 1);
   }
 
   async function handleSort(field: SortField): Promise<void> {
