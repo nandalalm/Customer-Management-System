@@ -14,6 +14,7 @@ import { CustomerForm } from "@/components/customers/CustomerForm";
 import { CustomerAvatar } from "@/components/common/CustomerAvatar";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
+import type { Customer } from "@/types";
 
 export type DrawerMode = "view" | "edit" | "create";
 

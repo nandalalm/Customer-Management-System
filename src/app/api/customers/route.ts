@@ -27,7 +27,7 @@ export async function GET(
     const sortDir = searchParams.get("sortDir") || searchParams.get("direction") || "desc";
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
     const pageSize = Math.min(
-      100,
+      10000,
       Math.max(1, parseInt(searchParams.get("pageSize") ?? "10", 10))
     );
 
@@ -60,16 +60,20 @@ export async function GET(
     }
 
     if (dateFrom) {
-      const from = new Date(dateFrom).getTime();
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      const fromTime = fromDate.getTime();
       results = results.filter(
-        (c) => new Date(c.lastContactDate).getTime() >= from
+        (c) => new Date(c.lastContactDate).getTime() >= fromTime
       );
     }
 
     if (dateTo) {
-      const to = new Date(dateTo).getTime();
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      const toTime = toDate.getTime();
       results = results.filter(
-        (c) => new Date(c.lastContactDate).getTime() <= to
+        (c) => new Date(c.lastContactDate).getTime() <= toTime
       );
     }
 

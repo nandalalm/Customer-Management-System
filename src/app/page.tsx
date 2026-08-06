@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, Suspense } from "react";
 import { Header } from "@/components/layout/Header";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { CustomerTable } from "@/components/customers/CustomerTable";
+import { CustomerStatsCards } from "@/components/customers/CustomerStatsCards";
 import { FilterSidebar } from "@/components/filters/FilterSidebar";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { BulkActionToolbar } from "@/components/customers/BulkActionToolbar";
@@ -174,6 +175,7 @@ function HomeContent(): React.JSX.Element {
       <Header onAddCustomer={handleAddCustomer} />
       <PageLayout sidebar={<FilterSidebar />}>
         <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
+          <CustomerStatsCards />
           <BulkActionToolbar
             selectedIds={selectedIds}
             onClearSelection={handleClearSelection}
