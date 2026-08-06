@@ -37,6 +37,7 @@ export function useBulkActions(onSettled: () => void): BulkActionsReturn {
     const failed = results.filter((r) => r.status === "rejected").length;
 
     void queryClient.invalidateQueries({ queryKey: ["customers"] });
+    void queryClient.invalidateQueries({ queryKey: ["customer-stats"] });
 
     if (failed === 0) {
       const label =

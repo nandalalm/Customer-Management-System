@@ -83,6 +83,7 @@ export function useUpdateCustomer(): ReturnType<
     onSettled: (_data, _error, { id }) => {
       // Always sync with the server after success or failure
       void queryClient.invalidateQueries({ queryKey: ["customers"] });
+      void queryClient.invalidateQueries({ queryKey: ["customer-stats"] });
       void queryClient.invalidateQueries({ queryKey: ["customers", id] });
     },
 

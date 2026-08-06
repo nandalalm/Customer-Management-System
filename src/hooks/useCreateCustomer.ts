@@ -12,6 +12,7 @@ export function useCreateCustomer(): ReturnType<
     mutationFn: (data: CustomerFormValues) => createCustomer(data),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: ["customers"] });
+      void queryClient.invalidateQueries({ queryKey: ["customer-stats"] });
       toast.success(response.message ?? "Customer created successfully.");
     },
     onError: (error) => {
